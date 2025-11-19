@@ -212,10 +212,11 @@
         <button class="btn-sci" data-val="ln(">ln</button>
     </div>
 </div>
-
+<!-- REPLACE THE SCRIPT TAG IN ForgeCalculate.html WITH THIS -->
 <script>
     /**
      * ForgeCalculate Engine
+     * v1.1 - Fixed Logarithm Logic & Sanitization
      */
     let expression = "";
     let result = null;
@@ -224,13 +225,19 @@
     const currentDisplay = document.getElementById('current');
     const historyDisplay = document.getElementById('history');
 
+    /* 
+     * REPLACEMENTS 
+     * CRITICAL: 'log' must be replaced BEFORE 'ln'.
+     * If 'ln' runs first, it produces 'Math.log'. Then 'log' replacer
+     * sees 'Math.log', finds 'log', and turns it into 'Math.Math.log10'.
+     */
     const REPLACEMENTS = [
         { visual: 'sin', js: 'Math.sin' },
         { visual: 'cos', js: 'Math.cos' },
         { visual: 'tan', js: 'Math.tan' },
         { visual: 'sqrt', js: 'Math.sqrt' },
-        { visual: 'log', js: 'Math.log10' },
-        { visual: 'ln', js: 'Math.log' },
+        { visual: 'log', js: 'Math.log10' }, // Base 10
+        { visual: 'ln', js: 'Math.log' },   // Natural Log
         { visual: 'pi', js: 'Math.PI' },
         { visual: '\\^', js: '**' }
     ];
@@ -262,19 +269,24 @@
 
         try {
             let evalString = expression;
+            
+            // Apply replacements in specific order
             REPLACEMENTS.forEach(item => {
                 evalString = evalString.replace(new RegExp(item.visual, 'g'), item.js);
             });
 
-            // Strict sanitization for security
-            if (!/^[\d\.\s\+\-\*\/\(\)Math\.,PIELogsincoqrt]+$/.test(evalString)) {
+            // SECURITY SANITIZATION
+            // Allowed: Digits, Operators, Parentheses, Dots, Spaces, Commas
+            // Allowed Chars for Math functions: M, a, t, h, l, o, g, s, i, n, c, q, r, P, I, E
+            // Added 'l' (lowercase) which was missing previously causing log/ln to fail
+            if (!/^[\d\.\s\+\-\*\/\(\)Math\.,PIElogsincoqrt]+$/.test(evalString)) {
                throw new Error("Invalid");
             }
 
             const calcFunc = new Function(`return ${evalString}`);
             const rawResult = calcFunc();
             
-            // Precision handling
+            // Precision handling (Fix float errors like 0.1 + 0.2)
             result = Math.round(rawResult * 1e10) / 1e10;
             
             if (!Number.isFinite(result)) throw new Error("Error");
@@ -284,6 +296,7 @@
             isResultDisplayed = true;
             updateDisplay();
         } catch (e) {
+            // Visual error feedback
             const prev = expression;
             expression = "Error";
             updateDisplay();
@@ -291,6 +304,7 @@
         }
     }
 
+    // Event Listeners
     document.querySelector('.keypad').addEventListener('click', (e) => {
         const btn = e.target.closest('button');
         if (!btn) return;
