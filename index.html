@@ -182,11 +182,31 @@
             margin-bottom: 12px;
         }
 
+        .card-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 4px;
+        }
+
         .card-title {
             font-size: 1.25rem;
             font-weight: 700;
             color: var(--ctp-text);
-            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .card-category {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 8px;
+            background-color: var(--ctp-surface0);
+            color: var(--ctp-subtext0);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            flex-shrink: 0;
+            margin-left: 8px;
         }
 
         .card-desc {
@@ -333,26 +353,37 @@
          * - desc: Short description
          * - path: Relative path to the HTML file (or URL)
          * - color: CSS variable from Catppuccin palette (e.g., var(--ctp-red))
+         * - category: 'Utility', 'Game', 'Tool', etc.
          */
         const toys = [
-          {
-           name: "PomoShade",
-           desc: "A configurable, aesthetic Pomodoro timer with persistent settings, audio alerts, and notifications.",
-           path: "toys/PomoShade.html",
-           color: "var(--ctp-mauve)"
-          },
             {
-         name: "Eternal Bloom",
-         desc: "A relaxing idle garden simulator. Grow lilies, control the weather, and unlock cosmic secrets.",
-         path: "toys/EternalBloom.html",
-         color: "var(--ctp-pink)"
-          },
+                name: "PomoShade",
+                desc: "A configurable, aesthetic Pomodoro timer with persistent settings, audio alerts, and notifications.",
+                path: "toys/PomoShade.html",
+                color: "var(--ctp-mauve)",
+                category: "Utility"
+            },
             {
-    name: "ForgeCalculate",
-    desc: "A precise scientific calculator with complex math functions. Themed in Catppuccin Macchiato.",
-    path: "toys/ForgeCalculate.html",
-    color: "var(--ctp-mauve)"
-         },
+                name: "Eternal Bloom",
+                desc: "A relaxing idle garden simulator. Grow lilies, control the weather, and unlock cosmic secrets.",
+                path: "toys/EternalBloom.html",
+                color: "var(--ctp-pink)",
+                category: "Game"
+            },
+            {
+                name: "ForgeCalculate",
+                desc: "A precise scientific calculator with complex math functions. Themed in Catppuccin Macchiato.",
+                path: "toys/ForgeCalculate.html",
+                color: "var(--ctp-blue)",
+                category: "Tool"
+            },
+            {
+                name: "SerpentSaga",
+                desc: "A feature-rich Snake game with touch controls, power-ups, campaign modes, and unlockable skins.",
+                path: "toys/SerpentSaga.html",
+                color: "var(--ctp-green)",
+                category: "Game"
+            }
         ];
 
         // DOM Elements
@@ -381,7 +412,10 @@
 
                 card.innerHTML = `
                     <div class="card-header">
-                        <h2 class="card-title" style="color: ${toy.color}">${toy.name}</h2>
+                        <div class="card-top-row">
+                            <h2 class="card-title" style="color: ${toy.color}">${toy.name}</h2>
+                            <span class="card-category">${toy.category}</span>
+                        </div>
                     </div>
                     <p class="card-desc">${toy.desc}</p>
                     <div class="card-footer">
@@ -401,7 +435,8 @@
             const term = e.target.value.toLowerCase();
             const filtered = toys.filter(toy => 
                 toy.name.toLowerCase().includes(term) || 
-                toy.desc.toLowerCase().includes(term)
+                toy.desc.toLowerCase().includes(term) ||
+                toy.category.toLowerCase().includes(term)
             );
             renderToys(filtered);
         });
