@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Idle Lily Garden: Eternal Bloom</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        :root {
+            /* --- ROSÉ PINE PALETTE --- */
+            --base: #191724;
+            --surface: #1f1d2e;
+            --overlay: #26233a;
+            --muted: #6e6a86;
+            --subtle: #908caa;
+            --text: #e0def4;
+            --love: #eb6f92;
+            --gold: #f6c177;
+            --rose: #ebbcba;
+            --pine: #31748f;
+            --foam: #9ccfd8;
+            --iris: #c4a7e7;
+            --highlight: #403d52;
+
+            --font: 'Inter', sans-serif;
+            --shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
+
+        body {
+            margin: 0; height: 100vh; overflow: hidden;
+            background: var(--base); color: var(--text);
+            font-family: var(--font);
+        }
+
+        /* --- LAYOUT --- */
+        #app {
+            display: grid; width: 100%; height: 100%;
+            grid-template-rows: 50% 50%; grid-template-columns: 1fr;
+        }
+
+        /* --- TOP: GARDEN --- */
+        .garden-view {
+            position: relative;
+            background: radial-gradient(circle at 50% 60%, #26233a 0%, var(--base) 100%);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            overflow: hidden; z-index: 1;
+            border-bottom: 1px solid var(--highlight);
+            transition: background 1s ease;
+        }
+
+        .stats-bar {
+            position: absolute; top: 0; left: 0; width: 100%;
+            padding: 16px 20px; display: flex; justify-content: space-between; align-items: flex-start;
+            z-index: 10; pointer-events: none;
+        }
+        .stat-val { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .stat-lbl { font-size: 0.85rem; color: var(--foam); font-weight: 600; margin-top: 4px; }
+        
+        .weather-badge {
+            background: rgba(31, 29, 46, 0.6); backdrop-filter: blur(4px);
+            padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.8rem; display: flex; gap: 6px; align-items: center;
+        }
+
+        #lily-stage {
+            width: 260px; height: 260px; position: relative; z-index: 5;
+            cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center;
+        }
+        #lily-stage:active { transform: scale(0.92); }
+        .lily-svg { overflow: visible; filter: drop-shadow(0 0 25px rgba(235, 188, 186, 0.15)); }
+        .anim-breathe { animation: breathe 5s ease-in-out infinite; }
+        .anim-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+        @keyframes pop { 0% { transform: scale(0.9); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        .skills-dock { position: absolute; bottom: 20px; display: flex; gap: 16px; z-index: 20; }
+        .skill-btn {
+            width: 54px; height: 54px; border-radius: 50%;
+            background: rgba(31, 29, 46, 0.85); backdrop-filter: blur(8px);
+            border: 1px solid var(--highlight); color: var(--text); font-size: 1.4rem;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden; box-shadow: var(--shadow);
+        }
+        .skill-btn:disabled { opacity: 0.5; filter: grayscale(1); }
+        .skill-fill {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 0%;
+            background: rgba(0,0,0,0.5); pointer-events: none; transition: height 0.1s linear;
+        }
+
+        /* --- BOTTOM: CONTROLS --- */
+        .control-panel {
+            background: var(--surface); display: flex; flex-direction: column;
+            overflow: hidden; position: relative; z-index: 10;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+        }
+
+        .nav-header { flex: 0 0 auto; background: var(--base); border-bottom: 1px solid var(--overlay); padding: 0 16px; }
+        .nav-tabs { display: flex; gap: 8px; padding-top: 12px; }
+        .tab-btn {
+            flex: 1; padding: 10px; border-radius: 8px 8px 0 0;
+            background: transparent; border: none; color: var(--muted);
+            font-weight: 600; font-size: 0.8rem; transition: 0.2s; cursor: pointer; white-space: nowrap;
+        }
+        .tab-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+
+        .sub-header {
+            flex: 0 0 auto; padding: 12px 20px; background: var(--surface);
+            border-bottom: 1px solid var(--highlight); display: flex;
+            justify-content: flex-end; align-items: center; gap: 10px;
+            font-size: 0.8rem; color: var(--subtle);
+        }
+        .amt-toggle {
+            background: transparent; border: 1px solid var(--highlight);
+            color: var(--muted); padding: 4px 12px; border-radius: 20px;
+            font-size: 0.75rem; font-weight: 600; cursor: pointer;
+        }
+        .amt-toggle.active { background: var(--pine); border-color: var(--pine); color: var(--text); }
+
+        .scroll-area {
+            flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            padding: 16px 20px; background: var(--surface);
+        }
+        .scroll-area::-webkit-scrollbar { width: 5px; }
+        .scroll-area::-webkit-scrollbar-thumb { background: var(--highlight); border-radius: 10px; }
+
+        /* CARDS */
+        .card {
+            background: var(--overlay); border: 1px solid transparent; border-radius: 12px;
+            padding: 14px; margin-bottom: 12px; display: grid;
+            grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center;
+            position: relative; overflow: hidden;
+        }
+        .card:active:not(.disabled) { background: var(--highlight); transform: scale(0.98); }
+        .card.disabled { opacity: 0.5; background: rgba(38, 35, 58, 0.5); }
+        .card-icon { font-size: 1.6rem; display: flex; justify-content: center; }
+        .card-info h4 { margin: 0; font-size: 0.95rem; font-weight: 600; color: var(--text); }
+        .card-info p { margin: 2px 0 0; font-size: 0.75rem; color: var(--subtle); }
+        .card-meta { text-align: right; }
+        .cost { color: var(--gold); font-weight: 700; font-size: 0.9rem; }
+        .lvl { font-size: 0.7rem; background: var(--base); color: var(--muted); padding: 2px 8px; border-radius: 4px; margin-top: 4px; display: inline-block; }
+
+        /* ACHIEVEMENT GRID */
+        .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .ach-card {
+            background: var(--base); border: 1px solid var(--highlight); border-radius: 8px;
+            padding: 12px; text-align: center; opacity: 0.5; filter: grayscale(1); transition: 0.3s;
+        }
+        .ach-card.unlocked { opacity: 1; filter: grayscale(0); border-color: var(--gold); background: rgba(246, 193, 119, 0.05); }
+        .ach-icon { font-size: 1.5rem; margin-bottom: 6px; }
+        .ach-title { font-weight: bold; font-size: 0.8rem; color: var(--text); margin-bottom: 4px; }
+        .ach-desc { font-size: 0.7rem; color: var(--subtle); line-height: 1.3; }
+
+        /* FX & TOASTS */
+        .float-txt {
+            position: absolute; font-weight: bold; font-size: 1.2rem; color: var(--gold);
+            pointer-events: none; animation: floatUp 0.8s ease-out forwards; z-index: 100;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        @keyframes floatUp { to { transform: translateY(-40px); opacity: 0; } }
+
+        #ladybug {
+            position: absolute; width: 40px; height: 40px; background: var(--love);
+            border-radius: 50%; border: 2px solid var(--base); z-index: 50;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); top: 120%; left: -50px; pointer-events: none;
+        }
+        #ladybug.crawling { animation: crawl 12s linear forwards; pointer-events: auto; cursor: pointer; }
+        @keyframes crawl { 0% { top: 80%; left: -50px; transform: rotate(20deg); } 100% { top: 20%; left: 110%; transform: rotate(-10deg); } }
+
+        #fx-canvas { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 2; }
+
+        @media (min-width: 900px) {
+            #app { grid-template-rows: 1fr; grid-template-columns: 1fr 400px; max-width: 1400px; margin: 0 auto; }
+            .garden-view { border-bottom: none; border-right: 1px solid var(--overlay); }
+            .stats-bar { top: 2rem; left: 2rem; right: 2rem; width: auto; background: transparent; padding: 0; }
+            .nav-header { padding-top: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fx-canvas"></canvas>
+    <div id="app">
+        
+        <!-- GARDEN -->
+        <section class="garden-view" id="garden-bg">
+            <div class="stats-bar">
+                <div>
+                    <div class="stat-val" id="ui-sun">0</div>
+                    <div class="stat-lbl" id="ui-sps">0 / sec</div>
+                </div>
+                <div class="weather-badge">
+                    <span id="ui-w-icon">☀️</span> <span id="ui-w-text">Sunny</span>
+                </div>
+            </div>
+            <div id="ladybug">🐞</div>
+            <div id="lily-stage"></div>
+            <div class="skills-dock">
+                <button class="skill-btn" id="sk-1" title="Sunburst">☀️<div class="skill-fill"></div></button>
+                <button class="skill-btn" id="sk-2" title="Rain Dance">🌧️<div class="skill-fill"></div></button>
+                <button class="skill-btn" id="sk-3" title="Pollination">🐝<div class="skill-fill"></div></button>
+            </div>
+        </section>
+
+        <!-- CONTROLS -->
+        <section class="control-panel">
+            <div class="nav-header">
+                <nav class="nav-tabs">
+                    <button class="tab-btn active" onclick="UI.tab('shop')">Greenhouse</button>
+                    <button class="tab-btn" onclick="UI.tab('essence')">Essence</button>
+                    <button class="tab-btn" onclick="UI.tab('achs')">Awards</button>
+                    <button class="tab-btn" onclick="UI.tab('data')">System</button>
+                </nav>
+            </div>
+
+            <div class="sub-header" id="shop-controls">
+                <span>Buy:</span>
+                <button class="amt-toggle active" onclick="Game.setBuy(1, this)">x1</button>
+                <button class="amt-toggle" onclick="Game.setBuy(10, this)">x10</button>
+                <button class="amt-toggle" onclick="Game.setBuy('max', this)">MAX</button>
+            </div>
+
+            <div class="scroll-area">
+                <div id="view-shop"></div>
+                <div id="view-essence" style="display:none">
+                    <div style="background: var(--overlay); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 16px; border: 1px solid var(--highlight);">
+                        <div style="font-size: 2rem; color: var(--iris); font-weight: 800;" id="ui-essence">0</div>
+                        <div style="color: var(--subtle); font-size: 0.8rem;">Magical Essence</div>
+                    </div>
+                    <button id="btn-rebloom" class="card" style="width:100%; justify-content:center; background:var(--love); color:white; border:none; font-weight:bold;" disabled>Rebloom (Reset for Essence)</button>
+                    <div id="list-essence" style="margin-top:16px"></div>
+                </div>
+                <div id="view-achs" style="display:none">
+                    <div id="ach-grid" class="ach-grid"></div>
+                </div>
+                <div id="view-data" style="display:none">
+                    <div class="card" onclick="Game.hardReset()">
+                        <div class="card-icon">⚠️</div>
+                        <div class="card-info"><h4>Hard Reset</h4><p>Wipe save file completely</p></div>
+                        <div class="card-meta" style="color:var(--love); font-weight:bold;">RESET</div>
+                    </div>
+                    <p style="text-align:center; color:var(--subtle); font-size:0.75rem; margin-top:20px;">Idle Lily Garden v4.0<br>Eternal Bloom</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+    const CONFIG = {
+        tick: 100,
+        items: [
+            { id:'u1', n:'Pipette', c:15, s:0.5, i:'💧' },
+            { id:'u2', n:'Compost', c:100, s:4, i:'🌱' },
+            { id:'u3', n:'UV Lamp', c:1100, s:22, i:'💡' },
+            { id:'u4', n:'Beehive', c:12000, s:85, i:'🐝' },
+            { id:'u5', n:'Sprinkler', c:130000, s:360, i:'🚿' },
+            { id:'u6', n:'Hydroponic', c:1.4e6, s:1800, i:'⚗️' },
+            { id:'u7', n:'Sun Array', c:20e6, s:9500, i:'☀️' },
+            { id:'u8', n:'Gaia Core', c:350e6, s:50000, i:'🌍' },
+        ],
+        essence: [
+            { id:'e1', n:'Photosynthesis', c:1, d:'+10% Global SPS', f:l=>1+(l*0.1) },
+            { id:'e2', n:'Root Strength', c:2, d:'Clicks +0.5% SPS', f:l=>l*0.005 },
+            { id:'e3', n:'Guild Discount', c:5, d:'-2% Upgrade Cost', f:l=>Math.max(0.1, 1-(l*0.02)) }
+        ],
+        weather: {
+            sunny: { n:'Sunny', i:'☀️', m:1.0, c:'#f6c177' },
+            rainy: { n:'Rainy', i:'🌧️', m:1.5, c:'#9ccfd8' },
+            starry: { n:'Starry', i:'✨', m:0.8, c:'#c4a7e7' },
+        },
+        achievements: [
+            { id: 1, n: "First Touch", d: "Click the lily once.", c: s => s.stats.clicks >= 1 },
+            { id: 2, n: "Baby Steps", d: "Gather 100 Sunlight.", c: s => s.tot >= 100 },
+            { id: 3, n: "Consumer", d: "Buy your first upgrade.", c: s => Object.values(s.upg).some(v=>v>0) },
+            { id: 4, n: "Flowing", d: "Reach 10 SPS.", c: (s, g) => g.sps >= 10 },
+            { id: 5, n: "Lucky Find", d: "Click a Ladybug.", c: s => s.stats.bugs >= 1 },
+            { id: 6, n: "Clicker", d: "Click 500 times.", c: s => s.stats.clicks >= 500 },
+            { id: 7, n: "Energized", d: "Gather 50,000 Sunlight.", c: s => s.tot >= 50000 },
+            { id: 8, n: "Tech Up", d: "Own a UV Lamp.", c: s => (s.upg['u3']||0) > 0 },
+            { id: 9, n: "Overdrive", d: "Reach 5,000 SPS.", c: (s, g) => g.sps >= 5000 },
+            { id: 10, n: "Full House", d: "Own first 6 upgrades.", c: s => ['u1','u2','u3','u4','u5','u6'].every(k => (s.upg[k]||0)>0) },
+            { id: 11, n: "Reborn", d: "Rebloom once.", c: s => s.stats.reblooms >= 1 },
+            { id: 12, n: "Shiny", d: "Have 10 Essence.", c: s => s.ess >= 10 },
+            { id: 13, n: "Mega Clicker", d: "Click 5,000 times.", c: s => s.stats.clicks >= 5000 },
+            { id: 14, n: "Millionaire", d: "Gather 1 Million Sunlight.", c: s => s.tot >= 1e6 },
+            { id: 15, n: "Automation", d: "Reach 1 Million SPS.", c: (s, g) => g.sps >= 1e6 },
+            { id: 16, n: "Hoarder", d: "200 Total Upgrade Levels.", c: s => Object.values(s.upg).reduce((a,b)=>a+b,0) >= 200 },
+            { id: 17, n: "Billionaire", d: "Gather 1 Billion Sunlight.", c: s => s.tot >= 1e9 },
+            { id: 18, n: "High Tech", d: "Own a Gaia Core.", c: s => (s.upg['u8']||0) > 0 },
+            { id: 19, n: "Enlightened", d: "Have 100 Essence.", c: s => s.ess >= 100 },
+            { id: 20, n: "Trillionaire", d: "Gather 1 Trillion Sunlight.", c: s => s.tot >= 1e12 },
+            { id: 21, n: "Industrialist", d: "Reach 1 Billion SPS.", c: (s, g) => g.sps >= 1e9 },
+            { id: 22, n: "Finger Pain", d: "Click 25,000 times.", c: s => s.stats.clicks >= 25000 },
+            { id: 23, n: "Galactic", d: "Gather 1 Quadrillion Sunlight.", c: s => s.tot >= 1e15 },
+            { id: 24, n: "Mastery", d: "1,000 Total Upgrade Levels.", c: s => Object.values(s.upg).reduce((a,b)=>a+b,0) >= 1000 },
+            { id: 25, n: "Eternal", d: "Gather 1 Quintillion Sunlight.", c: s => s.tot >= 1e18 }
+        ]
+    };
+
+    const STATE = {
+        sun: 0, tot: 0, ess: 0,
+        upg: {}, essUpg: {},
+        skills: { s1:0, s2:0, s3:0 },
+        weath: 'sunny', buy: 1,
+        achs: [], // IDs
+        stats: { clicks: 0, bugs: 0, reblooms: 0 }
+    };
+
+    const Game = {
+        sps: 0, clk: 1, costMod: 1,
+        
+        init() {
+            this.load();
+            FX.init();
+            Lily.draw();
+            
+            setInterval(() => this.tick(), CONFIG.tick);
+            setInterval(() => this.weather(), 60000 * 2);
+            setInterval(() => this.save(), 10000);
+            setInterval(() => { if(Math.random()>0.7) UI.spawnBug(); }, 5000);
+            setInterval(() => this.checkAchs(), 1000);
+
+            UI.render();
+            this.loop();
+        },
+
+        tick() {
+            const dt = CONFIG.tick / 1000;
+            const rain = (Date.now() < STATE.skills.s2 + 30000) ? 5 : 1;
+            const gain = this.sps * dt * rain;
+            
+            if(gain > 0) { STATE.sun += gain; STATE.tot += gain; UI.updateNums(); }
+            UI.updateSkills();
+        },
+
+        recalc() {
+            const e3 = STATE.essUpg['e3'] || 0;
+            this.costMod = CONFIG.essence[2].f(e3);
+
+            let raw = 0;
+            CONFIG.items.forEach(u => raw += u.s * (STATE.upg[u.id]||0));
+            
+            const wMod = CONFIG.weather[STATE.weath].m;
+            const e1Mod = CONFIG.essence[0].f(STATE.essUpg['e1']||0);
+            this.sps = raw * wMod * e1Mod;
+
+            const e2Mod = CONFIG.essence[1].f(STATE.essUpg['e2']||0);
+            const skill = (Date.now() < STATE.skills.s3 + 20000) ? 10 : 1;
+            this.clk = (1 + (this.sps * e2Mod)) * skill;
+        },
+
+        click(e) {
+            STATE.stats.clicks++;
+            STATE.sun += this.clk; STATE.tot += this.clk;
+            UI.floatText(e.clientX, e.clientY, this.clk);
+            UI.updateNums(); UI.renderShop(); Lily.pop(); FX.burst(e.clientX, e.clientY);
+        },
+
+        buy(id) {
+            const u = CONFIG.items.find(x => x.id === id);
+            const lvl = STATE.upg[id] || 0;
+            const {cost, count} = this.getCost(u.c * this.costMod, lvl, STATE.buy);
+            
+            if(count > 0 && STATE.sun >= cost) {
+                STATE.sun -= cost; STATE.upg[id] = lvl + count;
+                this.recalc(); UI.renderShop(); UI.updateNums(); Lily.draw();
+            }
+        },
+
+        buyEss(id) {
+            const u = CONFIG.essence.find(x => x.id === id);
+            const lvl = STATE.essUpg[id] || 0;
+            const cost = u.c * (lvl+1);
+            if(STATE.ess >= cost) {
+                STATE.ess -= cost; STATE.essUpg[id] = lvl + 1;
+                this.recalc(); UI.renderEssence(); UI.updateNums();
+            }
+        },
+
+        getCost(base, lvl, amt) {
+            const r = 1.15;
+            if(amt !== 'max') {
+                const n = parseInt(amt);
+                const c = base * (Math.pow(r, lvl) * (Math.pow(r, n) - 1)) / (r - 1);
+                return {count: n, cost: Math.ceil(c)};
+            }
+            const a = base * Math.pow(r, lvl);
+            const t = (STATE.sun * (r - 1)) / a + 1;
+            if(t <= 0) return {count:0, cost:0};
+            const n = Math.floor(Math.log(t)/Math.log(r));
+            const c = base * (Math.pow(r, lvl) * (Math.pow(r, n) - 1)) / (r - 1);
+            return {count: n, cost: Math.ceil(c)};
+        },
+
+        skill(id) {
+            const now = Date.now();
+            const cd = [300000, 600000, 120000][parseInt(id.substr(1))-1];
+            if(now > (STATE.skills[id]||0) + cd) {
+                STATE.skills[id] = now;
+                if(id === 's1') { STATE.sun += this.sps * 60; UI.toast("Sunburst!"); }
+                if(id === 's2') { STATE.weath = 'rainy'; UI.updateWeather(); }
+                this.recalc();
+            }
+        },
+
+        setBuy(n, el) {
+            STATE.buy = n;
+            document.querySelectorAll('.amt-toggle').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            UI.renderShop();
+        },
+
+        rebloom() {
+            if(STATE.sun < 1e9) return;
+            const g = Math.floor(Math.pow(Math.log10(STATE.tot), 2.5)/50);
+            if(confirm(`Reset for ${g} Essence?`)) {
+                STATE.ess += g; STATE.sun = 0; STATE.upg = {};
+                STATE.skills = {s1:0,s2:0,s3:0};
+                STATE.stats.reblooms++;
+                CONFIG.items.forEach(i=>STATE.upg[i.id]=0);
+                this.recalc(); this.save(); location.reload();
+            }
+        },
+
+        checkAchs() {
+            CONFIG.achievements.forEach(a => {
+                if(!STATE.achs.includes(a.id) && a.c(STATE, this)) {
+                    STATE.achs.push(a.id);
+                    UI.toast(`🏆 Unlocked: ${a.n}`);
+                    UI.renderAchs();
+                }
+            });
+        },
+
+        weather() {
+            const keys = Object.keys(CONFIG.weather);
+            STATE.weath = keys[Math.floor(Math.random()*keys.length)];
+            this.recalc(); UI.updateWeather();
+        },
+
+        save() { localStorage.setItem('LilyEternal_v4', JSON.stringify(STATE)); },
+        load() {
+            const d = JSON.parse(localStorage.getItem('LilyEternal_v4'));
+            if(d) {
+                Object.assign(STATE, d);
+                if(!STATE.stats) STATE.stats = { clicks: 0, bugs: 0, reblooms: 0 };
+                if(!STATE.achs) STATE.achs = [];
+            } else {
+                CONFIG.items.forEach(i=>STATE.upg[i.id]=0);
+                CONFIG.essence.forEach(i=>STATE.essUpg[i.id]=0);
+            }
+            this.recalc();
+        },
+        hardReset() { localStorage.removeItem('LilyEternal_v4'); location.reload(); },
+        loop() { FX.draw(); requestAnimationFrame(()=>this.loop()); }
+    };
+
+    const UI = {
+        fmt: n => {
+            if(n<1000) return Math.floor(n);
+            const s = ["","k","M","B","T","Q"];
+            const i = Math.floor(Math.log10(n)/3);
+            return (n/Math.pow(1000,i)).toFixed(2)+s[i];
+        },
+
+        render() {
+            this.renderShop();
+            this.renderEssence();
+            this.renderAchs();
+            this.updateNums();
+            this.updateWeather();
+        },
+
+        renderShop() {
+            document.getElementById('view-shop').innerHTML = CONFIG.items.map(u => {
+                const lvl = STATE.upg[u.id] || 0;
+                const {cost, count} = Game.getCost(u.c * Game.costMod, lvl, STATE.buy);
+                const canAfford = count > 0 && STATE.sun >= cost;
+                return `<div class="card ${canAfford?'':'disabled'}" onclick="Game.buy('${u.id}')">
+                    <div class="card-icon">${u.i}</div>
+                    <div class="card-info"><h4>${u.n}</h4><p>+${this.fmt(u.s)} SPS</p></div>
+                    <div class="card-meta"><div class="cost">${this.fmt(cost)}</div><div class="lvl">Lvl ${lvl}</div></div>
+                </div>`;
+            }).join('');
+        },
+
+        renderEssence() {
+            document.getElementById('list-essence').innerHTML = CONFIG.essence.map(u => {
+                const lvl = STATE.essUpg[u.id] || 0;
+                const cost = u.c * (lvl+1);
+                return `<div class="card ${STATE.ess>=cost?'':'disabled'}" onclick="Game.buyEss('${u.id}')">
+                    <div class="card-icon">🔮</div>
+                    <div class="card-info"><h4>${u.n}</h4><p>${u.d}</p></div>
+                    <div class="card-meta"><div class="cost" style="color:var(--iris)">${cost}</div><div class="lvl">Lvl ${lvl}</div></div>
+                </div>`;
+            }).join('');
+        },
+
+        renderAchs() {
+            document.getElementById('ach-grid').innerHTML = CONFIG.achievements.map(a => {
+                const un = STATE.achs.includes(a.id);
+                return `<div class="ach-card ${un?'unlocked':''}">
+                    <div class="ach-icon">${un ? '🏆' : '🔒'}</div>
+                    <div class="ach-title">${a.n}</div>
+                    <div class="ach-desc">${a.d}</div>
+                </div>`;
+            }).join('');
+        },
+
+        updateNums() {
+            document.getElementById('ui-sun').innerText = this.fmt(STATE.sun);
+            document.getElementById('ui-sps').innerText = this.fmt(Game.sps) + "/sec";
+            document.getElementById('ui-essence').innerText = STATE.ess;
+            const rb = document.getElementById('btn-rebloom');
+            rb.disabled = STATE.sun < 1e9;
+            rb.style.opacity = STATE.sun < 1e9 ? 0.5 : 1;
+        },
+
+        updateWeather() {
+            const w = CONFIG.weather[STATE.weath];
+            document.getElementById('ui-w-icon').innerText = w.i;
+            document.getElementById('ui-w-text').innerText = w.n;
+            const map = {
+                sunny: 'radial-gradient(circle at 50% 60%, #26233a 0%, #191724 100%)',
+                rainy: 'radial-gradient(circle at 50% 60%, #31748f 0%, #191724 100%)',
+                starry: 'radial-gradient(circle at 50% 60%, #1f1d2e 0%, #111 100%)'
+            };
+            document.getElementById('garden-bg').style.background = map[STATE.weath];
+        },
+
+        updateSkills() {
+            const now = Date.now();
+            ['s1','s2','s3'].forEach((k, i) => {
+                const cd = [300000,600000,120000][i];
+                const last = STATE.skills[k] || 0;
+                const btn = document.getElementById(`sk-${i+1}`);
+                const fill = btn.querySelector('.skill-fill');
+                if(now < last+cd) {
+                    btn.disabled = true; fill.style.height = (100 - ((now-last)/cd*100)) + "%";
+                } else {
+                    btn.disabled = false; fill.style.height = "0%";
+                }
+            });
+        },
+
+        tab(name) {
+            ['shop','essence','achs','data'].forEach(v => document.getElementById('view-'+v).style.display='none');
+            document.getElementById('view-'+name).style.display='block';
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('shop-controls').style.display = name === 'shop' ? 'flex' : 'none';
+        },
+
+        floatText(x, y, val) {
+            const d = document.createElement('div');
+            d.className = 'float-txt'; d.innerText = "+" + this.fmt(val);
+            d.style.left = x+"px"; d.style.top = y+"px";
+            document.body.appendChild(d); setTimeout(()=>d.remove(), 800);
+        },
+
+        spawnBug() {
+            const b = document.getElementById('ladybug');
+            if(!b.classList.contains('crawling')) {
+                b.classList.add('crawling');
+                b.onclick = (e) => {
+                    e.stopPropagation();
+                    STATE.stats.bugs++;
+                    const g = Math.max(50, Game.sps*60);
+                    STATE.sun += g; UI.toast(`Lucky! +${this.fmt(g)}`);
+                    b.classList.remove('crawling'); FX.burst(e.clientX, e.clientY);
+                };
+                setTimeout(()=>b.classList.remove('crawling'), 12000);
+            }
+        },
+        toast(m) {
+            const d = document.createElement('div');
+            d.style.cssText = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--surface); padding:8px 16px; border-radius:20px; border:1px solid var(--highlight); z-index:100; font-weight:bold; animation:floatUp 2s forwards; white-space:nowrap;`;
+            d.innerText = m;
+            document.body.appendChild(d); setTimeout(()=>d.remove(), 2000);
+        }
+    };
+
+    const Lily = {
+        draw() {
+            const s = STATE.tot;
+            const stage = s>1e6?4:s>5000?3:s>500?2:1;
+            let h = `<svg class="lily-svg anim-breathe" viewBox="0 0 200 200">`;
+            h+=`<path d="M100 200 Q 100 150 100 130" stroke="#31748f" stroke-width="4" fill="none"/>`;
+            if(stage>1) h+=`<path d="M100 160 Q 70 140 60 170" fill="#9ccfd8" opacity="0.8"/><path d="M100 160 Q 130 140 140 170" fill="#9ccfd8" opacity="0.8"/>`;
+            if(stage>2) {
+                const c = stage===4 ? "url(#grad)" : "#ebbcba";
+                h+=`<defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f6c177"/><stop offset="100%" stop-color="#eb6f92"/></linearGradient></defs>`;
+                for(let i=0;i<6;i++) h+=`<ellipse cx="100" cy="100" rx="12" ry="35" fill="${c}" transform="rotate(${i*60} 100 100)"/>`;
+                h+=`<circle cx="100" cy="100" r="10" fill="#f6c177"/>`;
+            } else { h+=`<circle cx="100" cy="130" r="12" fill="#ebbcba"/>`; }
+            h+=`</svg>`;
+            document.getElementById('lily-stage').innerHTML = h;
+            document.getElementById('lily-stage').onmousedown = (e) => Game.click(e);
+        },
+        pop() {
+            const e = document.querySelector('.lily-svg');
+            e.classList.remove('anim-breathe'); void e.offsetWidth; e.classList.add('anim-pop');
+            setTimeout(() => { e.classList.remove('anim-pop'); e.classList.add('anim-breathe'); }, 300);
+        }
+    };
+
+    const FX = {
+        p: [],
+        init() { this.c=document.getElementById('fx-canvas'); this.x=this.c.getContext('2d'); this.rs(); window.onresize=()=>this.rs(); },
+        rs() { this.c.width=window.innerWidth; this.c.height=window.innerHeight; },
+        burst(x, y) { for(let i=0;i<6;i++) this.p.push({x, y, vx:(Math.random()-.5)*8, vy:(Math.random()-.5)*8, l:1, c:'#f6c177'}); },
+        draw() {
+            this.x.clearRect(0,0,this.c.width,this.c.height);
+            if(STATE.weath==='rainy' && Math.random()>.8) this.p.push({x:Math.random()*this.c.width, y:-10, vx:0, vy:8, l:1, c:'#9ccfd8', t:1});
+            this.p.forEach((p,i) => {
+                p.x+=p.vx; p.y+=p.vy; p.l-=0.02;
+                this.x.globalAlpha=p.l; this.x.fillStyle=p.c;
+                if(p.t) this.x.fillRect(p.x,p.y,2,12); else { this.x.beginPath(); this.x.arc(p.x,p.y,3,0,7); this.x.fill(); }
+                if(p.l<=0) this.p.splice(i,1);
+            });
+        }
+    };
+
+    document.getElementById('sk-1').onclick = () => Game.skill('s1');
+    document.getElementById('sk-2').onclick = () => Game.skill('s2');
+    document.getElementById('sk-3').onclick = () => Game.skill('s3');
+    document.getElementById('btn-rebloom').onclick = () => Game.rebloom();
+    
+    Game.init();
+    </script>
+</body>
+</html>
