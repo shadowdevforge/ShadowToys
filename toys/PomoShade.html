@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PomoShade</title>
+    <meta name="theme-color" content="#24273a">
+    <meta name="description" content="A customizable, self-contained Pomodoro timer.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* 
+         * THEME: Catppuccin Macchiato 
+         */
+        :root {
+            --ctp-base: #24273a;
+            --ctp-mantle: #1e2030;
+            --ctp-crust: #181926;
+            
+            --ctp-text: #cad3f5;
+            --ctp-subtext0: #a5adcb;
+            --ctp-overlay0: #6e738d;
+            --ctp-surface0: #363a4f;
+            --ctp-surface1: #494d64;
+            
+            --ctp-mauve: #c6a0f6;
+            --ctp-teal: #8bd5ca;
+            --ctp-blue: #8aadf4;
+            --ctp-red: #ed8796;
+            --ctp-green: #a6da95;
+
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            --current-color: var(--ctp-mauve);
+            --radius: 16px;
+            --radius-sm: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--ctp-base);
+            color: var(--ctp-text);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: background-color 0.5s ease;
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 1.2rem;
+            letter-spacing: -0.03em;
+            color: var(--ctp-text);
+        }
+
+        .settings-btn {
+            background: transparent;
+            border: none;
+            color: var(--ctp-overlay0);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-btn:hover {
+            background: var(--ctp-surface0);
+            color: var(--ctp-text);
+        }
+
+        /* Mode Switcher */
+        .modes {
+            display: flex;
+            gap: 4px;
+            background: var(--ctp-mantle);
+            padding: 4px;
+            border-radius: 100px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            color: var(--ctp-subtext0);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s ease;
+        }
+
+        .mode-btn:hover { color: var(--ctp-text); }
+        
+        .mode-btn.active {
+            background: var(--ctp-surface0);
+            color: var(--current-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Timer Circle */
+        .timer-wrapper {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            margin: 10px 0;
+        }
+
+        .timer-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .timer-circle-bg {
+            fill: none;
+            stroke: var(--ctp-surface0);
+            stroke-width: 6;
+        }
+
+        .timer-circle-progress {
+            fill: none;
+            stroke: var(--current-color);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+        }
+
+        .timer-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .time-text {
+            font-family: var(--font-mono);
+            font-size: 3.5rem;
+            font-weight: 700;
+            letter-spacing: -2px;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .status-text {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--ctp-subtext0);
+            opacity: 0.7;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .btn-main {
+            background: var(--current-color);
+            color: var(--ctp-base);
+            border: none;
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 25px -5px rgba(0,0,0,0.3);
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+
+        .btn-main:hover { transform: scale(1.05); }
+        .btn-main:active { transform: scale(0.95); }
+
+        .btn-icon {
+            background: transparent;
+            border: 2px solid var(--ctp-surface1);
+            color: var(--ctp-subtext0);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-icon:hover {
+            border-color: var(--ctp-text);
+            color: var(--ctp-text);
+            background: var(--ctp-surface0);
+        }
+
+        /* Settings Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(24, 25, 38, 0.8); /* Crust with opacity */
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background: var(--ctp-mantle);
+            width: 90%;
+            max-width: 360px;
+            padding: 24px;
+            border-radius: var(--radius);
+            border: 1px solid var(--ctp-surface0);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            transform: translateY(20px);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-backdrop.open .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--ctp-text);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--ctp-overlay0);
+            cursor: pointer;
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 16px; }
+        
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--ctp-subtext0);
+            margin-bottom: 6px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-wrap { flex: 1; }
+
+        input[type="number"] {
+            width: 100%;
+            background: var(--ctp-crust);
+            border: 1px solid var(--ctp-surface0);
+            color: var(--ctp-text);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+        }
+        
+        input[type="number"]:focus {
+            border-color: var(--ctp-mauve);
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 4px 0;
+        }
+
+        .toggle-label { font-size: 0.95rem; }
+
+        /* Custom Checkbox */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--ctp-surface0);
+            border-radius: 24px;
+            transition: .2s;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--ctp-subtext0);
+            border-radius: 50%;
+            transition: .2s;
+        }
+        input:checked + .slider { background-color: var(--ctp-green); }
+        input:checked + .slider:before { transform: translateX(20px); background-color: var(--ctp-crust); }
+
+        .modal-footer {
+            margin-top: 24px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-save {
+            background: var(--ctp-mauve);
+            color: var(--ctp-base);
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-save:hover { opacity: 0.9; }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="brand">PomoShade</div>
+            <button class="settings-btn" onclick="openSettings()" aria-label="Settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+        </header>
+        
+        <!-- Mode Selector -->
+        <div class="modes">
+            <button class="mode-btn active" onclick="setMode('pomodoro')" id="btn-pomodoro">Focus</button>
+            <button class="mode-btn" onclick="setMode('short')" id="btn-short">Short</button>
+            <button class="mode-btn" onclick="setMode('long')" id="btn-long">Long</button>
+        </div>
+
+        <!-- Timer Visualization -->
+        <div class="timer-wrapper">
+            <svg class="timer-svg" viewBox="0 0 100 100">
+                <circle class="timer-circle-bg" cx="50" cy="50" r="45"></circle>
+                <circle class="timer-circle-progress" id="progress-ring" cx="50" cy="50" r="45" pathLength="1"></circle>
+            </svg>
+            
+            <div class="timer-display">
+                <div class="time-text" id="time-display">25:00</div>
+                <div class="status-text" id="status-text">PAUSED</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn-icon" onclick="resetTimer()" aria-label="Reset Timer">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12"/></svg>
+            </button>
+            
+            <button class="btn-main" onclick="toggleTimer()" id="toggle-btn" aria-label="Start Timer">
+                <svg id="play-icon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <svg id="pause-icon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display: none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+            </button>
+
+            <button class="btn-icon" onclick="skipTimer()" aria-label="Skip">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Settings Modal Overlay -->
+    <div class="modal-backdrop" id="settings-modal" onclick="closeSettings(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title">Settings</div>
+                <button class="close-btn" onclick="closeSettings()">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-label">Timer Durations (minutes)</div>
+                <div class="input-row">
+                    <div class="input-wrap">
+                        <label class="form-label">Focus</label>
+                        <input type="number" id="set-pomodoro" min="1" max="90">
+                    </div>
+                    <div class="input-wrap">
+                        <label class="form-label">Short</label>
+                        <input type="number" id="set-short" min="1" max="30">
+                    </div>
+                    <div class="input-wrap">
+                        <label class="form-label">Long</label>
+                        <input type="number" id="set-long" min="1" max="60">
+                    </div>
+                </div>
+            </div>
+
+            <div class="toggle-row">
+                <span class="toggle-label">Sound Effects</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="set-sound">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="toggle-row">
+                <span class="toggle-label">Browser Notifications</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="set-notif">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-save" onclick="saveSettings()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Configuration & State
+         */
+        const DEFAULT_SETTINGS = {
+            pomodoro: 25,
+            short: 5,
+            long: 15,
+            sound: true,
+            notif: true
+        };
+
+        let settings = { ...DEFAULT_SETTINGS };
+
+        // Mode Definitions
+        const MODES = {
+            pomodoro: { color: 'var(--ctp-mauve)', label: 'Focus' },
+            short: { color: 'var(--ctp-teal)', label: 'Short Break' },
+            long: { color: 'var(--ctp-blue)', label: 'Long Break' }
+        };
+
+        // Runtime State
+        let currentMode = 'pomodoro';
+        let timeLeft = settings.pomodoro * 60;
+        let isRunning = false;
+        let timerInterval = null;
+        
+        // Elements
+        const el = {
+            time: document.getElementById('time-display'),
+            status: document.getElementById('status-text'),
+            ring: document.getElementById('progress-ring'),
+            toggle: document.getElementById('toggle-btn'),
+            playIcon: document.getElementById('play-icon'),
+            pauseIcon: document.getElementById('pause-icon'),
+            modal: document.getElementById('settings-modal'),
+            inputs: {
+                pomodoro: document.getElementById('set-pomodoro'),
+                short: document.getElementById('set-short'),
+                long: document.getElementById('set-long'),
+                sound: document.getElementById('set-sound'),
+                notif: document.getElementById('set-notif')
+            }
+        };
+        const root = document.documentElement;
+
+        /**
+         * Initialization
+         */
+        function init() {
+            loadSettings();
+            updateDisplay();
+            updateColor();
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (el.modal.classList.contains('open')) return;
+                if (e.code === 'Space') { e.preventDefault(); toggleTimer(); }
+                if (e.code === 'Escape') resetTimer();
+            });
+        }
+
+        /**
+         * Settings Management
+         */
+        function loadSettings() {
+            const stored = localStorage.getItem('pomoshade-settings');
+            if (stored) {
+                settings = { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+            }
+            // Reset time based on loaded settings
+            timeLeft = settings[currentMode] * 60;
+        }
+
+        function openSettings() {
+            // Populate inputs
+            el.inputs.pomodoro.value = settings.pomodoro;
+            el.inputs.short.value = settings.short;
+            el.inputs.long.value = settings.long;
+            el.inputs.sound.checked = settings.sound;
+            el.inputs.notif.checked = settings.notif;
+            
+            el.modal.classList.add('open');
+        }
+
+        function closeSettings(e) {
+            // If event is provided (click backdrop), close. If not provided (btn click), close.
+            if (!e || e.target === el.modal || e.target.classList.contains('close-btn')) {
+                el.modal.classList.remove('open');
+            }
+        }
+
+        function saveSettings() {
+            const newSettings = {
+                pomodoro: parseInt(el.inputs.pomodoro.value) || 25,
+                short: parseInt(el.inputs.short.value) || 5,
+                long: parseInt(el.inputs.long.value) || 15,
+                sound: el.inputs.sound.checked,
+                notif: el.inputs.notif.checked
+            };
+
+            // Check if permissions need request
+            if (newSettings.notif && !settings.notif) {
+                Notification.requestPermission();
+            }
+
+            settings = newSettings;
+            localStorage.setItem('pomoshade-settings', JSON.stringify(settings));
+            
+            // Reset timer to apply new duration
+            resetTimer();
+            closeSettings();
+        }
+
+        /**
+         * Timer Logic
+         */
+        function toggleTimer() {
+            isRunning ? pauseTimer() : startTimer();
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            el.status.textContent = "RUNNING";
+            el.toggle.setAttribute('aria-label', 'Pause');
+            el.playIcon.style.display = 'none';
+            el.pauseIcon.style.display = 'block';
+
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateDisplay();
+                    updateTitle();
+                } else {
+                    completeTimer();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            el.status.textContent = "PAUSED";
+            el.toggle.setAttribute('aria-label', 'Start');
+            el.playIcon.style.display = 'block';
+            el.pauseIcon.style.display = 'none';
+            updateTitle(true);
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timeLeft = settings[currentMode] * 60;
+            el.status.textContent = "READY";
+            updateDisplay();
+            updateTitle(true);
+        }
+
+        function skipTimer() {
+            completeTimer(true);
+        }
+
+        function completeTimer(skipped = false) {
+            pauseTimer();
+            if (!skipped) {
+                el.status.textContent = "FINISHED";
+                if (settings.sound) playAlarm();
+                if (settings.notif) sendNotification();
+            } else {
+                el.status.textContent = "SKIPPED";
+            }
+            // Optional: Auto-switch mode? Keeping simple for now.
+        }
+
+        /**
+         * Mode Switching
+         */
+        function setMode(mode) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${mode}`).classList.add('active');
+
+            currentMode = mode;
+            updateColor();
+            resetTimer();
+        }
+
+        /**
+         * Visual Updates
+         */
+        function updateDisplay() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            el.time.textContent = `${m}:${s}`;
+
+            const totalTime = settings[currentMode] * 60;
+            const offset = 1 - (timeLeft / totalTime);
+            el.ring.style.strokeDashoffset = offset;
+        }
+
+        function updateTitle(reset = false) {
+            if (reset) {
+                document.title = "PomoShade";
+                return;
+            }
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            document.title = `(${m}m) PomoShade`;
+        }
+
+        function updateColor() {
+            root.style.setProperty('--current-color', MODES[currentMode].color);
+        }
+
+        /**
+         * Audio & Notification
+         */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playAlarm() {
+            // Double beep
+            beep(880, 100, 0);
+            setTimeout(() => beep(880, 300, 0), 200);
+        }
+
+        function beep(freq, duration, startTime = 0) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            
+            const now = audioCtx.currentTime + startTime;
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.15, now + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + (duration / 1000));
+            
+            osc.start(now);
+            osc.stop(now + (duration / 1000));
+        }
+
+        function sendNotification() {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("Timer Complete", { 
+                    body: `${MODES[currentMode].label} finished. Take a break!`,
+                    icon: '' // Could be a data URI icon
+                });
+            }
+        }
+
+        // Initialize App
+        init();
+
+    </script>
+</body>
+</html>
