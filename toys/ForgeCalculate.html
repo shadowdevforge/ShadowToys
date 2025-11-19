@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForgeCalculate</title>
+    <style>
+        /* Catppuccin Macchiato Theme Variables */
+        :root {
+            --ctp-base: #24273a;
+            --ctp-mantle: #1e2030;
+            --ctp-crust: #181926;
+            --ctp-text: #cad3f5;
+            --ctp-subtext0: #a5adcb;
+            --ctp-surface0: #363a4f;
+            --ctp-surface1: #494d64;
+            --ctp-surface2: #5b6078;
+            --ctp-blue: #8aadf4;
+            --ctp-mauve: #c6a0f6;
+            --ctp-red: #ed8796;
+            --ctp-green: #a6da95;
+            
+            --font-family: 'SF Mono', 'Segoe UI Mono', 'Roboto Mono', monospace;
+            --radius: 16px;
+            --gap: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            outline: none;
+        }
+
+        body {
+            background-color: var(--ctp-base);
+            color: var(--ctp-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .calculator {
+            background-color: var(--ctp-mantle);
+            padding: 32px;
+            border-radius: 32px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid var(--ctp-surface0);
+        }
+
+        .brand {
+            text-align: center;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--ctp-surface2);
+            margin-bottom: 24px;
+            font-weight: 800;
+        }
+
+        /* Display Section */
+        .display {
+            background-color: var(--ctp-crust);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            height: 120px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .display-history {
+            font-size: 0.9rem;
+            color: var(--ctp-surface2);
+            min-height: 1.2rem;
+            margin-bottom: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .display-current {
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: var(--ctp-text);
+            white-space: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        .display-current::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+
+        /* Keypad Grid */
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--gap);
+        }
+
+        /* Button Styles */
+        button {
+            background-color: var(--ctp-surface0);
+            border: none;
+            color: var(--ctp-text);
+            padding: 18px 0;
+            font-size: 1.1rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.1s ease;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 0 var(--ctp-surface1);
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+        }
+
+        /* Button Variants */
+        .btn-op {
+            background-color: var(--ctp-surface1);
+            color: var(--ctp-blue);
+            box-shadow: 0 4px 0 var(--ctp-surface2);
+            font-weight: bold;
+        }
+
+        .btn-sci {
+            color: var(--ctp-mauve);
+            font-size: 0.95rem;
+        }
+
+        .btn-action {
+            color: var(--ctp-red);
+            font-weight: bold;
+        }
+
+        .btn-eq {
+            background-color: var(--ctp-green);
+            color: var(--ctp-crust);
+            box-shadow: 0 4px 0 #8bd575;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator">
+    <div class="brand">ForgeCalculate</div>
+    
+    <div class="display">
+        <div class="display-history" id="history"></div>
+        <div class="display-current" id="current">0</div>
+    </div>
+
+    <div class="keypad">
+        <!-- Row 1 -->
+        <button class="btn-action" data-action="clear">AC</button>
+        <button class="btn-action" data-action="delete">DEL</button>
+        <button class="btn-sci" data-val="(">(</button>
+        <button class="btn-sci" data-val=")">)</button>
+
+        <!-- Row 2 -->
+        <button class="btn-sci" data-val="sin(">sin</button>
+        <button class="btn-sci" data-val="cos(">cos</button>
+        <button class="btn-sci" data-val="tan(">tan</button>
+        <button class="btn-op" data-val="/">÷</button>
+
+        <!-- Row 3 -->
+        <button data-val="7">7</button>
+        <button data-val="8">8</button>
+        <button data-val="9">9</button>
+        <button class="btn-op" data-val="*">×</button>
+
+        <!-- Row 4 -->
+        <button data-val="4">4</button>
+        <button data-val="5">5</button>
+        <button data-val="6">6</button>
+        <button class="btn-op" data-val="-">-</button>
+
+        <!-- Row 5 -->
+        <button data-val="1">1</button>
+        <button data-val="2">2</button>
+        <button data-val="3">3</button>
+        <button class="btn-op" data-val="+">+</button>
+
+        <!-- Row 6 -->
+        <button class="btn-sci" data-val="sqrt(">√</button>
+        <button data-val="0">0</button>
+        <button data-val=".">.</button>
+        <button class="btn-eq" data-action="calculate">=</button>
+        
+        <!-- Extra Functionality -->
+        <button class="btn-sci" data-val="^">^</button>
+        <button class="btn-sci" data-val="pi">π</button>
+        <button class="btn-sci" data-val="log(">log</button>
+        <button class="btn-sci" data-val="ln(">ln</button>
+    </div>
+</div>
+
+<script>
+    /**
+     * ForgeCalculate Engine
+     */
+    let expression = "";
+    let result = null;
+    let isResultDisplayed = false;
+
+    const currentDisplay = document.getElementById('current');
+    const historyDisplay = document.getElementById('history');
+
+    const REPLACEMENTS = [
+        { visual: 'sin', js: 'Math.sin' },
+        { visual: 'cos', js: 'Math.cos' },
+        { visual: 'tan', js: 'Math.tan' },
+        { visual: 'sqrt', js: 'Math.sqrt' },
+        { visual: 'log', js: 'Math.log10' },
+        { visual: 'ln', js: 'Math.log' },
+        { visual: 'pi', js: 'Math.PI' },
+        { visual: '\\^', js: '**' }
+    ];
+
+    function updateDisplay() {
+        currentDisplay.innerText = expression || "0";
+        currentDisplay.scrollLeft = currentDisplay.scrollWidth;
+    }
+
+    function handleInput(value) {
+        if (isResultDisplayed && !isOperator(value)) {
+            expression = "";
+            historyDisplay.innerText = "";
+        } else if (isResultDisplayed && isOperator(value)) {
+            historyDisplay.innerText = `Ans = ${result}`;
+        }
+        
+        isResultDisplayed = false;
+        expression += value;
+        updateDisplay();
+    }
+
+    function isOperator(char) {
+        return ['+', '-', '*', '/', '^'].includes(char);
+    }
+
+    function calculate() {
+        if (!expression) return;
+
+        try {
+            let evalString = expression;
+            REPLACEMENTS.forEach(item => {
+                evalString = evalString.replace(new RegExp(item.visual, 'g'), item.js);
+            });
+
+            // Strict sanitization for security
+            if (!/^[\d\.\s\+\-\*\/\(\)Math\.,PIELogsincoqrt]+$/.test(evalString)) {
+               throw new Error("Invalid");
+            }
+
+            const calcFunc = new Function(`return ${evalString}`);
+            const rawResult = calcFunc();
+            
+            // Precision handling
+            result = Math.round(rawResult * 1e10) / 1e10;
+            
+            if (!Number.isFinite(result)) throw new Error("Error");
+
+            historyDisplay.innerText = expression + " =";
+            expression = result.toString();
+            isResultDisplayed = true;
+            updateDisplay();
+        } catch (e) {
+            const prev = expression;
+            expression = "Error";
+            updateDisplay();
+            setTimeout(() => { expression = prev; updateDisplay(); }, 1000);
+        }
+    }
+
+    document.querySelector('.keypad').addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+
+        const { val, action } = btn.dataset;
+
+        if (val) handleInput(val);
+        if (action === 'calculate') calculate();
+        if (action === 'clear') {
+            expression = "";
+            historyDisplay.innerText = "";
+            updateDisplay();
+        }
+        if (action === 'delete') {
+            expression = isResultDisplayed ? "" : expression.slice(0, -1);
+            updateDisplay();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (/[0-9\.\+\-\*\/\(\)\^]/.test(e.key)) handleInput(e.key);
+        if (e.key === 'Enter') calculate();
+        if (e.key === 'Backspace') {
+            expression = expression.slice(0, -1);
+            updateDisplay();
+        }
+    });
+</script>
+</body>
+</html>
