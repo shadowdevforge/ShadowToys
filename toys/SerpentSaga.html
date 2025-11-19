@@ -2,31 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShadowToys | Experimental Sandbox</title>
-    <meta name="description" content="A collection of self-contained HTML toys and experiments.">
-    
-    <!-- Fonts: Inter for UI, JetBrains Mono for code aesthetics -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SerpentSaga | Catppuccin Snake</title>
+    <meta name="theme-color" content="#24273a">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
 
     <style>
-        /* 
-         * THEME: Catppuccin Macchiato 
-         */
         :root {
+            /* Catppuccin Macchiato Palette */
             --ctp-base: #24273a;
             --ctp-mantle: #1e2030;
             --ctp-crust: #181926;
-            
             --ctp-text: #cad3f5;
             --ctp-subtext0: #a5adcb;
             --ctp-overlay0: #6e738d;
             --ctp-surface0: #363a4f;
+            --ctp-surface1: #494d64;
             
-            --ctp-blue: #8aadf4;
             --ctp-lavender: #b7bdf8;
+            --ctp-blue: #8aadf4;
             --ctp-sapphire: #7dc4e4;
             --ctp-sky: #91d7e3;
             --ctp-teal: #8bd5ca;
@@ -37,378 +32,694 @@
             --ctp-red: #ed8796;
             --ctp-mauve: #c6a0f6;
             --ctp-pink: #f5bde6;
-            --ctp-flamingo: #f0c6c6;
-            --ctp-rosewater: #f4dbd6;
 
-            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-ui: 'Inter', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
-            
-            --radius: 12px;
-            --transition: 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --radius: 16px;
         }
 
-        /* Resets */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+
         body {
-            background-color: var(--ctp-base);
+            background: var(--ctp-base);
             color: var(--ctp-text);
-            font-family: var(--font-sans);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-            /* Subtle ambient light */
-            background-image: radial-gradient(circle at 50% 0%, #2f334d 0%, var(--ctp-base) 60%);
-        }
-
-        a { text-decoration: none; color: inherit; transition: var(--transition); }
-        button, input { border: none; outline: none; font-family: inherit; }
-
-        /* Layout Utilities */
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* 
-         * HERO SECTION 
-         */
-        .hero {
-            text-align: center;
-            padding: 80px 0 40px;
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 4rem);
-            font-weight: 800;
-            margin-bottom: 16px;
-            letter-spacing: -0.03em;
-            color: var(--ctp-lavender);
-            text-shadow: 0 0 40px rgba(183, 189, 248, 0.15);
-        }
-
-        .hero p {
-            font-size: 1.1rem;
-            color: var(--ctp-subtext0);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .tag {
-            display: inline-block;
-            background: var(--ctp-surface0);
-            color: var(--ctp-pink);
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            padding: 4px 12px;
-            border-radius: 100px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(245, 189, 230, 0.2);
-        }
-
-        /* 
-         * SEARCH BAR 
-         */
-        .search-wrapper {
-            margin: 20px auto 60px;
-            max-width: 500px;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 16px 24px;
-            padding-left: 50px; /* Space for icon */
-            background-color: var(--ctp-mantle);
-            border: 2px solid var(--ctp-surface0);
-            border-radius: 100px;
-            color: var(--ctp-text);
-            font-size: 1.1rem;
-            transition: var(--transition);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .search-input:focus {
-            border-color: var(--ctp-mauve);
-            box-shadow: 0 4px 25px rgba(198, 160, 246, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--ctp-overlay0);
-            pointer-events: none;
-        }
-
-        /* 
-         * CARD GRID 
-         */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 24px;
-            padding-bottom: 80px;
-        }
-
-        .card {
-            background-color: var(--ctp-mantle);
-            border-radius: var(--radius);
-            padding: 24px;
-            border: 1px solid var(--ctp-surface0);
-            border-left: 4px solid transparent; /* Dynamic color here */
-            display: flex;
-            flex-direction: column;
-            transition: var(--transition);
-            position: relative;
+            font-family: var(--font-ui);
+            height: 100vh;
             overflow: hidden;
-            height: 100%;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
-            background-color: #202236; /* Slightly lighter mantle */
-        }
-
-        .card-header {
-            margin-bottom: 12px;
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--ctp-text);
-            margin-bottom: 4px;
-        }
-
-        .card-desc {
-            font-size: 0.95rem;
-            color: var(--ctp-subtext0);
-            flex-grow: 1; /* Pushes button down */
-            margin-bottom: 24px;
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: auto;
-        }
-
-        .card-link {
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-            font-weight: 700;
-            padding: 8px 16px;
-            border-radius: 6px;
-            background-color: var(--ctp-surface0);
-            color: var(--ctp-text);
-            transition: var(--transition);
-        }
-
-        .card-link:hover {
-            background-color: var(--ctp-overlay0);
-            color: #fff;
-        }
-
-        .no-results {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 40px;
-            color: var(--ctp-overlay0);
-            font-style: italic;
-        }
-
-        /* 
-         * FOOTER 
-         */
-        .footer {
-            margin-top: auto;
-            background-color: var(--ctp-crust);
-            padding: 40px 0;
-            border-top: 1px solid var(--ctp-surface0);
-            text-align: center;
-        }
-
-        .footer-links {
             display: flex;
             justify-content: center;
-            gap: 24px;
-            margin-bottom: 16px;
+            align-items: center;
         }
 
-        .footer-link {
-            color: var(--ctp-subtext0);
-            font-weight: 600;
+        #app {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 600px;
             display: flex;
+            flex-direction: column;
+        }
+
+        /* Canvas Layer */
+        canvas {
+            display: block;
+            background: var(--ctp-mantle);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            touch-action: none;
+            margin: auto;
+            border-radius: 4px;
+            image-rendering: pixelated;
+        }
+
+        /* UI Layers */
+        .ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        .ui-layer.hidden { opacity: 0; pointer-events: none; }
+        .ui-layer.active { opacity: 1; pointer-events: auto; }
+
+        /* HUD */
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .score-pill {
+            background: rgba(30, 32, 48, 0.8);
+            backdrop-filter: blur(4px);
+            padding: 8px 16px;
+            border-radius: 100px;
+            border: 1px solid var(--ctp-surface0);
+            font-family: var(--font-mono);
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--ctp-yellow);
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .powerup-container {
+            display: flex;
             gap: 8px;
         }
+        
+        .powerup-icon {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: var(--ctp-surface0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            opacity: 0.3;
+            transition: 0.2s;
+        }
+        .powerup-icon.active { opacity: 1; transform: scale(1.1); box-shadow: 0 0 15px var(--ctp-blue); }
 
-        .footer-link:hover {
-            color: var(--ctp-mauve);
+        /* Menus */
+        .menu-card {
+            background: var(--ctp-mantle);
+            border: 2px solid var(--ctp-surface0);
+            padding: 32px;
+            border-radius: var(--radius);
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-width: 350px;
+            width: 90%;
+            animation: floatIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .footer-note {
-            font-size: 0.85rem;
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--ctp-mauve), var(--ctp-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .subtitle { color: var(--ctp-subtext0); margin-bottom: 24px; font-size: 0.9rem; }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 12px;
+            background: var(--ctp-surface0);
+            color: var(--ctp-text);
+            border: none;
+            border-radius: 12px;
+            font-family: var(--font-ui);
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            border-left: 4px solid transparent;
+        }
+
+        .btn:hover { background: var(--ctp-surface1); transform: translateX(4px); }
+        .btn-primary { background: var(--ctp-mauve); color: var(--ctp-base); }
+        .btn-primary:hover { background: var(--ctp-lavender); }
+        
+        .grid-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .opt-btn { padding: 10px; font-size: 0.8rem; opacity: 0.6; border: 2px solid transparent; }
+        .opt-btn.selected { opacity: 1; border-color: var(--ctp-green); background: rgba(166, 218, 149, 0.1); color: var(--ctp-green); }
+
+        /* Skins Grid */
+        .skins-wrapper {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 20px 0;
+        }
+        .skin-item {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            background: var(--ctp-surface0);
+            cursor: pointer;
+            position: relative;
+            border: 2px solid transparent;
+        }
+        .skin-item.locked { opacity: 0.3; cursor: not-allowed; }
+        .skin-item.active { border-color: var(--ctp-yellow); }
+        .skin-dot { width: 12px; height: 12px; border-radius: 50%; position: absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
+
+        @keyframes floatIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .hint {
+            position: absolute;
+            bottom: 20px;
             color: var(--ctp-overlay0);
+            font-size: 0.8rem;
+            text-align: center;
+            width: 100%;
+            animation: pulse 2s infinite;
         }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 600px) {
-            .hero h1 { font-size: 2.5rem; }
-            .search-wrapper { margin: 10px auto 40px; }
-        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- Hero -->
-        <header class="hero">
-            <div class="tag">// Experimental</div>
-            <h1>ShadowToys</h1>
-            <p>
-                A collection of self-contained, single-file HTML tools built for fun.
-                No builds, no dependencies, just raw code.
-            </p>
-        </header>
-
-        <!-- Search -->
-        <div class="search-wrapper">
-            <span class="search-icon">
-                <!-- Simple SVG Search Icon -->
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </span>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search toys..." autocomplete="off">
+    <div id="app">
+        <!-- HUD -->
+        <div class="hud">
+            <div class="score-pill">
+                <span id="scoreVal">0</span>
+                <span style="color:var(--ctp-overlay0)">|</span>
+                <span id="highScoreVal" style="color:var(--ctp-mauve)">0</span>
+            </div>
+            <div class="powerup-container">
+                <div class="powerup-icon" id="pu-ghost">👻</div>
+                <div class="powerup-icon" id="pu-slow">❄️</div>
+                <div class="powerup-icon" id="pu-multi">✖️2</div>
+            </div>
         </div>
 
-        <!-- Grid -->
-        <main id="cardGrid" class="grid">
-            <!-- Content injected via JS -->
-        </main>
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Main Menu -->
+        <div id="menuLayer" class="ui-layer active">
+            <div class="menu-card">
+                <h1>SerpentSaga</h1>
+                <p class="subtitle">The Modern Classic</p>
+                
+                <div class="grid-options">
+                    <button class="btn opt-btn selected" onclick="Game.setMode('classic', this)">Classic</button>
+                    <button class="btn opt-btn" onclick="Game.setMode('zen', this)">Zen (No Walls)</button>
+                    <button class="btn opt-btn" onclick="Game.setMode('speed', this)">Blitz</button>
+                    <button class="btn opt-btn" onclick="Game.setMode('campaign', this)">Campaign</button>
+                </div>
+
+                <button class="btn btn-primary" onclick="Game.start()">Play Now</button>
+                <button class="btn" onclick="UI.showSkins()">Customize</button>
+            </div>
+            <div class="hint">Swipe, Click-Drag, or WASD to Move</div>
+        </div>
+
+        <!-- Skins Menu -->
+        <div id="skinsLayer" class="ui-layer hidden">
+            <div class="menu-card">
+                <h2>Wardrobe</h2>
+                <p class="subtitle">Unlock by beating high scores</p>
+                <div class="skins-wrapper" id="skinsGrid"></div>
+                <button class="btn" onclick="UI.showMenu()">Back</button>
+            </div>
+        </div>
+
+        <!-- Game Over -->
+        <div id="overLayer" class="ui-layer hidden">
+            <div class="menu-card">
+                <h2 style="color: var(--ctp-red)">Wasted</h2>
+                <p class="subtitle" id="deathReason">You hit a wall.</p>
+                <div style="font-size: 3rem; font-weight: 900; color: var(--ctp-text); margin: 10px 0;" id="finalScore">0</div>
+                <div style="color: var(--ctp-green); margin-bottom: 20px; font-weight: bold; display:none" id="newRecordMsg">NEW RECORD!</div>
+                <button class="btn btn-primary" onclick="Game.start()">Try Again</button>
+                <button class="btn" onclick="UI.showMenu()">Menu</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-links">
-                <a href="https://github.com/shadowdevforge/ShadowToys" target="_blank" class="footer-link">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                    Star on GitHub
-                </a>
-                <a href="mailto:shadowdev.forge+contact@gmail.com" class="footer-link">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                    Sponsor / Hire
-                </a>
-            </div>
-            <p class="footer-note">Enjoy this Playground! Built with Catppuccin Macchiato.</p>
-        </div>
-    </footer>
+<script>
+/* 
+ * SERPENT SAGA ENGINE 
+ * Fully self-contained JS
+ */
 
-    <script>
-        /**
-         * ShadowToys Configuration
-         * To add a new toy, simply append an object to this array.
-         * 
-         * Properties:
-         * - name: Title of the toy
-         * - desc: Short description
-         * - path: Relative path to the HTML file (or URL)
-         * - color: CSS variable from Catppuccin palette (e.g., var(--ctp-red))
-         */
-        const toys = [
-          {
-           name: "PomoShade",
-           desc: "A configurable, aesthetic Pomodoro timer with persistent settings, audio alerts, and notifications.",
-           path: "toys/PomoShade.html",
-           color: "var(--ctp-mauve)"
-          },
-            {
-         name: "Eternal Bloom",
-         desc: "A relaxing idle garden simulator. Grow lilies, control the weather, and unlock cosmic secrets.",
-         path: "toys/EternalBloom.html",
-         color: "var(--ctp-pink)"
-          },
-            {
-    name: "ForgeCalculate",
-    desc: "A precise scientific calculator with complex math functions. Themed in Catppuccin Macchiato.",
-    path: "toys/ForgeCalculate.html",
-    color: "var(--ctp-mauve)"
-         },
+const Theme = {
+    base: '#24273a', mantle: '#1e2030', surface0: '#363a4f',
+    text: '#cad3f5', green: '#a6da95', red: '#ed8796',
+    yellow: '#eed49f', blue: '#8aadf4', mauve: '#c6a0f6',
+    peach: '#f5a97f', teal: '#8bd5ca', lavender: '#b7bdf8'
+};
+
+const SKINS = [
+    { id: 'classic', name: 'Matcha', color: Theme.green, req: 0 },
+    { id: 'ocean', name: 'Sapphire', color: Theme.blue, req: 50 },
+    { id: 'royal', name: 'Amethyst', color: Theme.mauve, req: 100 },
+    { id: 'sunset', name: 'Peach', color: Theme.peach, req: 200 },
+    { id: 'danger', name: 'Crimson', color: Theme.red, req: 350 },
+    { id: 'void', name: 'Phantom', color: Theme.lavender, req: 500 },
+    { id: 'gold', name: 'Midas', color: Theme.yellow, req: 800 },
+    { id: 'ice', name: 'Glacier', color: Theme.teal, req: 1000 },
+];
+
+const CONSTANTS = {
+    GRID: 20,
+    FPS: 60,
+    BASE_SPEED: 100, // ms per tick
+};
+
+// --- STATE MANAGEMENT ---
+const State = {
+    mode: 'classic',
+    highScore: parseInt(localStorage.getItem('serpent_high') || '0'),
+    skin: localStorage.getItem('serpent_skin') || 'classic',
+    score: 0,
+    running: false,
+    paused: false,
+    tickRate: 100,
+    snake: [],
+    dir: { x: 1, y: 0 },
+    nextDir: { x: 1, y: 0 },
+    food: null,
+    powerups: [],
+    particles: [],
+    activeEffects: { ghost: 0, slow: 0, multi: 0 },
+    lastTick: 0
+};
+
+// --- INPUT HANDLER ---
+const Input = {
+    startX: 0, startY: 0,
+    init() {
+        document.addEventListener('keydown', e => this.handleKey(e));
+        
+        const c = document.getElementById('gameCanvas');
+        // Touch
+        c.addEventListener('touchstart', e => {
+            this.startX = e.touches[0].clientX;
+            this.startY = e.touches[0].clientY;
+        }, {passive: false});
+        c.addEventListener('touchmove', e => e.preventDefault(), {passive: false}); // Prevent scroll
+        c.addEventListener('touchend', e => {
+            this.handleSwipe(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        });
+
+        // Mouse Drag
+        let isDragging = false;
+        c.addEventListener('mousedown', e => {
+            isDragging = true;
+            this.startX = e.clientX;
+            this.startY = e.clientY;
+        });
+        c.addEventListener('mouseup', e => {
+            if(isDragging) this.handleSwipe(e.clientX, e.clientY);
+            isDragging = false;
+        });
+    },
+
+    handleKey(e) {
+        if (!State.running) return;
+        const k = e.key;
+        if ((k === 'ArrowUp' || k === 'w') && State.dir.y === 0) State.nextDir = {x:0, y:-1};
+        if ((k === 'ArrowDown' || k === 's') && State.dir.y === 0) State.nextDir = {x:0, y:1};
+        if ((k === 'ArrowLeft' || k === 'a') && State.dir.x === 0) State.nextDir = {x:-1, y:0};
+        if ((k === 'ArrowRight' || k === 'd') && State.dir.x === 0) State.nextDir = {x:1, y:0};
+    },
+
+    handleSwipe(endX, endY) {
+        if (!State.running) return;
+        const dx = endX - this.startX;
+        const dy = endY - this.startY;
+        if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return; // Tap ignore
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+            // Horizontal
+            if (dx > 0 && State.dir.x === 0) State.nextDir = {x:1, y:0};
+            else if (dx < 0 && State.dir.x === 0) State.nextDir = {x:-1, y:0};
+        } else {
+            // Vertical
+            if (dy > 0 && State.dir.y === 0) State.nextDir = {x:0, y:1};
+            else if (dy < 0 && State.dir.y === 0) State.nextDir = {x:0, y:-1};
+        }
+    }
+};
+
+// --- RENDERER ---
+const Canvas = document.getElementById('gameCanvas');
+const ctx = Canvas.getContext('2d');
+let cols, rows;
+
+const Renderer = {
+    resize() {
+        const size = Math.min(window.innerWidth - 40, window.innerHeight - 120, 600);
+        // Snap to grid
+        const niceSize = Math.floor(size / CONSTANTS.GRID) * CONSTANTS.GRID;
+        Canvas.width = niceSize;
+        Canvas.height = niceSize;
+        cols = niceSize / CONSTANTS.GRID;
+        rows = niceSize / CONSTANTS.GRID;
+    },
+
+    draw() {
+        // Clear
+        ctx.fillStyle = Theme.mantle;
+        ctx.fillRect(0, 0, Canvas.width, Canvas.height);
+
+        // Grid (Subtle)
+        ctx.strokeStyle = Theme.surface0;
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.2;
+        ctx.beginPath();
+        for (let i = 0; i <= cols; i++) {
+            ctx.moveTo(i * CONSTANTS.GRID, 0);
+            ctx.lineTo(i * CONSTANTS.GRID, Canvas.height);
+        }
+        for (let i = 0; i <= rows; i++) {
+            ctx.moveTo(0, i * CONSTANTS.GRID);
+            ctx.lineTo(Canvas.width, i * CONSTANTS.GRID);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // Food
+        if (State.food) {
+            ctx.fillStyle = Theme.red;
+            this.drawCell(State.food.x, State.food.y, true);
+        }
+
+        // Powerups
+        State.powerups.forEach(p => {
+            ctx.fillStyle = p.type === 'ghost' ? Theme.lavender : (p.type === 'slow' ? Theme.teal : Theme.yellow);
+            this.drawCell(p.x, p.y, true);
+            ctx.font = '12px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = Theme.base;
+            ctx.fillText(p.icon, (p.x * CONSTANTS.GRID) + 10, (p.y * CONSTANTS.GRID) + 11);
+        });
+
+        // Snake
+        const skin = SKINS.find(s => s.id === State.skin) || SKINS[0];
+        State.snake.forEach((seg, i) => {
+            ctx.fillStyle = i === 0 ? '#fff' : skin.color;
+            
+            // Ghost effect
+            if (State.activeEffects.ghost > 0) ctx.globalAlpha = 0.5;
+            
+            this.drawCell(seg.x, seg.y, false);
+            
+            // Eyes
+            if (i === 0) {
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = Theme.base;
+                const cx = seg.x * CONSTANTS.GRID;
+                const cy = seg.y * CONSTANTS.GRID;
+                const off = 4;
+                if(State.dir.x === 1) { ctx.fillRect(cx+12, cy+4, 4, 4); ctx.fillRect(cx+12, cy+12, 4, 4); }
+                else if(State.dir.x === -1) { ctx.fillRect(cx+4, cy+4, 4, 4); ctx.fillRect(cx+4, cy+12, 4, 4); }
+                else if(State.dir.y === 1) { ctx.fillRect(cx+4, cy+12, 4, 4); ctx.fillRect(cx+12, cy+12, 4, 4); }
+                else { ctx.fillRect(cx+4, cy+4, 4, 4); ctx.fillRect(cx+12, cy+4, 4, 4); }
+            }
+        });
+        ctx.globalAlpha = 1;
+
+        // Particles
+        State.particles.forEach(p => {
+            ctx.fillStyle = p.c;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    },
+
+    drawCell(x, y, isCircle) {
+        const g = CONSTANTS.GRID;
+        const pad = 2;
+        if (isCircle) {
+            ctx.beginPath();
+            ctx.arc(x*g + g/2, y*g + g/2, g/2 - pad, 0, Math.PI*2);
+            ctx.fill();
+        } else {
+            ctx.fillRect(x*g + pad, y*g + pad, g - pad*2, g - pad*2);
+        }
+    }
+};
+
+// --- GAME LOGIC ---
+const Game = {
+    loopId: null,
+
+    setMode(m, el) {
+        State.mode = m;
+        document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+    },
+
+    start() {
+        State.snake = [{x: 5, y: 10}, {x: 4, y: 10}, {x: 3, y: 10}];
+        State.dir = {x: 1, y: 0};
+        State.nextDir = {x: 1, y: 0};
+        State.score = 0;
+        State.running = true;
+        State.activeEffects = { ghost: 0, slow: 0, multi: 0 };
+        State.powerups = [];
+        
+        // Mode defaults
+        State.tickRate = State.mode === 'speed' ? 60 : 100;
+        
+        this.spawnFood();
+        
+        document.querySelectorAll('.ui-layer').forEach(l => l.classList.remove('active', 'hidden'));
+        document.querySelectorAll('.ui-layer').forEach(l => l.classList.add('hidden'));
+        document.getElementById('newRecordMsg').style.display = 'none';
+        
+        UI.updateHUD();
+        this.loop();
+    },
+
+    spawnFood() {
+        let valid = false;
+        while(!valid) {
+            const x = Math.floor(Math.random() * cols);
+            const y = Math.floor(Math.random() * rows);
+            if (!State.snake.some(s => s.x === x && s.y === y)) {
+                State.food = {x, y};
+                valid = true;
+            }
+        }
+        // Chance to spawn powerup
+        if (Math.random() < 0.1 && State.powerups.length < 1 && State.mode !== 'classic') {
+            this.spawnPowerup();
+        }
+    },
+
+    spawnPowerup() {
+        const types = [
+            {type:'ghost', icon:'👻'}, 
+            {type:'slow', icon:'❄️'}, 
+            {type:'multi', icon:'✖️'}
         ];
+        const t = types[Math.floor(Math.random() * types.length)];
+        let valid = false;
+        while(!valid) {
+            const x = Math.floor(Math.random() * cols);
+            const y = Math.floor(Math.random() * rows);
+            if (!State.snake.some(s => s.x === x && s.y === y) && (State.food.x !== x || State.food.y !== y)) {
+                State.powerups.push({x, y, ...t, life: 400});
+                valid = true;
+            }
+        }
+    },
 
-        // DOM Elements
-        const grid = document.getElementById('cardGrid');
-        const searchInput = document.getElementById('searchInput');
+    update(dt) {
+        // Effects Tick
+        if (State.activeEffects.ghost > 0) State.activeEffects.ghost -= 16;
+        if (State.activeEffects.slow > 0) State.activeEffects.slow -= 16;
+        if (State.activeEffects.multi > 0) State.activeEffects.multi -= 16;
+        
+        // Powerup despawn
+        State.powerups.forEach(p => p.life--);
+        State.powerups = State.powerups.filter(p => p.life > 0);
 
-        /**
-         * Renders the card grid based on the provided array
-         */
-        function renderToys(data) {
-            grid.innerHTML = ''; // Clear existing
+        UI.updateHUD();
 
-            if (data.length === 0) {
-                grid.innerHTML = `<div class="no-results">No toys found matching your query.</div>`;
+        // Move Tick
+        const currentSpeed = State.activeEffects.slow > 0 ? State.tickRate * 2 : State.tickRate;
+        
+        if (Date.now() - State.lastTick > currentSpeed) {
+            State.dir = State.nextDir;
+            const head = { x: State.snake[0].x + State.dir.x, y: State.snake[0].y + State.dir.y };
+
+            // Walls
+            let wallHit = false;
+            if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows) {
+                if (State.mode === 'zen' || State.activeEffects.ghost > 0) {
+                    if (head.x < 0) head.x = cols - 1;
+                    if (head.x >= cols) head.x = 0;
+                    if (head.y < 0) head.y = rows - 1;
+                    if (head.y >= rows) head.y = 0;
+                } else {
+                    wallHit = true;
+                }
+            }
+
+            // Self Hit
+            if (!wallHit && State.activeEffects.ghost <= 0) {
+                if (State.snake.some(s => s.x === head.x && s.y === head.y)) wallHit = true;
+            }
+
+            if (wallHit) {
+                this.gameOver("Collision");
                 return;
             }
 
-            data.forEach((toy, index) => {
-                const card = document.createElement('article');
-                card.className = 'card';
-                // Apply dynamic border color
-                card.style.borderLeftColor = toy.color;
-                // Stagger animation delay
-                card.style.animation = `fadeIn 0.5s ease-out ${index * 0.05}s forwards`;
-                card.style.opacity = '0'; // Start hidden for animation
+            State.snake.unshift(head);
 
-                card.innerHTML = `
-                    <div class="card-header">
-                        <h2 class="card-title" style="color: ${toy.color}">${toy.name}</h2>
-                    </div>
-                    <p class="card-desc">${toy.desc}</p>
-                    <div class="card-footer">
-                        <a href="${toy.path}" class="card-link" aria-label="Open ${toy.name}">
-                            Launch &rarr;
-                        </a>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
+            // Eat Food
+            if (head.x === State.food.x && head.y === State.food.y) {
+                const gain = State.activeEffects.multi > 0 ? 20 : 10;
+                State.score += gain;
+                this.spawnParticles(head.x, head.y, Theme.red);
+                this.spawnFood();
+                // Speed up in campaign
+                if (State.mode === 'campaign' && State.tickRate > 40) State.tickRate -= 2;
+            } else {
+                // Eat Powerup?
+                const pIndex = State.powerups.findIndex(p => p.x === head.x && p.y === head.y);
+                if (pIndex !== -1) {
+                    const p = State.powerups[pIndex];
+                    if (p.type === 'ghost') State.activeEffects.ghost = 5000;
+                    if (p.type === 'slow') State.activeEffects.slow = 5000;
+                    if (p.type === 'multi') State.activeEffects.multi = 5000;
+                    State.powerups.splice(pIndex, 1);
+                    this.spawnParticles(head.x, head.y, Theme.yellow);
+                }
+                State.snake.pop();
+            }
+
+            State.lastTick = Date.now();
         }
 
-        /**
-         * Handle Search functionality
-         */
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = toys.filter(toy => 
-                toy.name.toLowerCase().includes(term) || 
-                toy.desc.toLowerCase().includes(term)
-            );
-            renderToys(filtered);
+        // Particle Physics
+        State.particles.forEach((p, i) => {
+            p.x += p.vx; p.y += p.vy; p.r -= 0.1;
+            if (p.r <= 0) State.particles.splice(i, 1);
         });
+    },
 
-        // Initial Render
-        renderToys(toys);
+    spawnParticles(gx, gy, color) {
+        const x = gx * CONSTANTS.GRID + CONSTANTS.GRID/2;
+        const y = gy * CONSTANTS.GRID + CONSTANTS.GRID/2;
+        for(let i=0; i<8; i++) {
+            State.particles.push({
+                x, y, 
+                vx: (Math.random()-0.5)*4, 
+                vy: (Math.random()-0.5)*4, 
+                r: Math.random()*3 + 2,
+                c: color
+            });
+        }
+    },
 
-    </script>
+    loop() {
+        if (!State.running) return;
+        this.update();
+        Renderer.draw();
+        requestAnimationFrame(() => this.loop());
+    },
+
+    gameOver(reason) {
+        State.running = false;
+        document.getElementById('overLayer').classList.remove('hidden');
+        document.getElementById('overLayer').classList.add('active');
+        document.getElementById('deathReason').textContent = reason;
+        document.getElementById('finalScore').textContent = State.score;
+
+        if (State.score > State.highScore) {
+            State.highScore = State.score;
+            localStorage.setItem('serpent_high', State.score);
+            document.getElementById('newRecordMsg').style.display = 'block';
+        }
+        UI.updateHUD();
+    }
+};
+
+// --- UI HANDLER ---
+const UI = {
+    updateHUD() {
+        document.getElementById('scoreVal').textContent = State.score;
+        document.getElementById('highScoreVal').textContent = State.highScore;
+        
+        document.getElementById('pu-ghost').classList.toggle('active', State.activeEffects.ghost > 0);
+        document.getElementById('pu-slow').classList.toggle('active', State.activeEffects.slow > 0);
+        document.getElementById('pu-multi').classList.toggle('active', State.activeEffects.multi > 0);
+    },
+
+    showSkins() {
+        document.getElementById('menuLayer').classList.remove('active');
+        document.getElementById('menuLayer').classList.add('hidden');
+        document.getElementById('skinsLayer').classList.remove('hidden');
+        document.getElementById('skinsLayer').classList.add('active');
+        
+        const grid = document.getElementById('skinsGrid');
+        grid.innerHTML = SKINS.map(s => {
+            const locked = State.highScore < s.req;
+            return `
+                <div class="skin-item ${locked ? 'locked' : ''} ${State.skin === s.id ? 'active' : ''}" 
+                     style="background: ${locked ? Theme.surface0 : Theme.mantle}"
+                     onclick="UI.selectSkin('${s.id}', ${s.req})">
+                     <div class="skin-dot" style="background: ${s.color}"></div>
+                     ${locked ? `<div style="position:absolute; bottom:2px; right:2px; font-size:10px; color:${Theme.overlay0}">🔒${s.req}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+    },
+
+    selectSkin(id, req) {
+        if (State.highScore >= req) {
+            State.skin = id;
+            localStorage.setItem('serpent_skin', id);
+            this.showSkins(); // Refresh UI
+        }
+    },
+
+    showMenu() {
+        document.querySelectorAll('.ui-layer').forEach(l => {
+            l.classList.remove('active');
+            l.classList.add('hidden');
+        });
+        document.getElementById('menuLayer').classList.remove('hidden');
+        document.getElementById('menuLayer').classList.add('active');
+    }
+};
+
+// --- INIT ---
+window.addEventListener('resize', () => Renderer.resize());
+Input.init();
+Renderer.resize();
+UI.updateHUD();
+
+</script>
 </body>
 </html>
