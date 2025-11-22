@@ -3,32 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown Blacksmith | Math Edition</title>
+    <title>Markdown Blacksmith | Final</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
     <!-- --- DEPENDENCIES --- -->
-    
-    <!-- 1. KaTeX (Math Rendering) CSS & JS -->
+    <!-- KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     
-    <!-- 2. Marked (Markdown Parser) -->
+    <!-- Marked & Extensions -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
-    <!-- 3. Marked KaTeX Extension (Connects Markdown + Math safely) -->
     <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension/lib/index.umd.js"></script>
     
-    <!-- 4. DOMPurify (Security) -->
+    <!-- Highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <!-- DOMPurify -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     
-    <!-- 5. CodeMirror (Editor) -->
+    <!-- CodeMirror -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/markdown/markdown.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/keymap/vim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/selection/active-line.min.js"></script>
 
     <style>
         /* THEME: Catppuccin Macchiato */
@@ -38,6 +41,7 @@
             --ctp-crust: #181926;
             --ctp-text: #cad3f5;
             --ctp-subtext0: #a5adcb;
+            --ctp-subtext1: #b8c0e0;
             --ctp-surface0: #363a4f;
             --ctp-surface1: #494d64;
             --ctp-blue: #8aadf4;
@@ -47,10 +51,12 @@
             --ctp-yellow: #eed49f;
             --ctp-peach: #f5a97f;
             --ctp-mauve: #c6a0f6;
+            --ctp-teal: #8bd5ca;
 
             --font-ui: 'Inter', sans-serif;
             --font-code: 'JetBrains Mono', monospace;
             --border: 1px solid var(--ctp-surface0);
+            --transition: 0.2s ease;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -65,74 +71,78 @@
             overflow: hidden;
         }
 
-        /* --- HEADER & STATUS BAR --- */
+        /* --- TOOLBAR --- */
         .toolbar {
-            height: 50px;
+            height: 54px;
             background: var(--ctp-mantle);
             border-bottom: var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 20px;
+            padding: 0 24px;
             flex-shrink: 0;
             user-select: none;
+            z-index: 10;
         }
 
         .brand {
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 1.1rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             color: var(--ctp-lavender);
+            letter-spacing: -0.02em;
         }
         
         .brand svg { stroke: var(--ctp-lavender); }
 
-        .controls {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
+        .controls { display: flex; gap: 12px; align-items: center; }
 
         .status-pill {
             font-family: var(--font-code);
-            font-size: 0.8rem;
-            padding: 4px 10px;
-            border-radius: 4px;
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 6px;
             background: var(--ctp-surface0);
             color: var(--ctp-subtext0);
-            min-width: 80px;
+            min-width: 90px;
             text-align: center;
-            font-weight: bold;
-            transition: 0.2s;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: var(--transition);
         }
 
-        /* Vim Status Colors */
         .vim-normal { color: var(--ctp-blue); border: 1px solid var(--ctp-blue); background: rgba(138, 173, 244, 0.1); }
         .vim-insert { color: var(--ctp-green); border: 1px solid var(--ctp-green); background: rgba(166, 218, 149, 0.1); }
         .vim-visual { color: var(--ctp-peach); border: 1px solid var(--ctp-peach); background: rgba(245, 169, 127, 0.1); }
-        .vim-replace { color: var(--ctp-red); border: 1px solid var(--ctp-red); background: rgba(237, 135, 150, 0.1); }
 
         .btn {
             background: transparent;
             border: 1px solid var(--ctp-surface1);
             color: var(--ctp-subtext0);
             padding: 6px 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 0.85rem;
+            font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
-            transition: 0.2s;
+            gap: 8px;
+            transition: var(--transition);
         }
 
         .btn:hover { background: var(--ctp-surface0); color: var(--ctp-text); }
-        .btn-primary { background: var(--ctp-lavender); color: var(--ctp-base); border: none; font-weight: 600; }
-        .btn-primary:hover { background: var(--ctp-blue); }
+        
+        .btn-primary { 
+            background: var(--ctp-lavender); 
+            color: var(--ctp-base); 
+            border: 1px solid var(--ctp-lavender); 
+            font-weight: 700; 
+        }
+        .btn-primary:hover { background: var(--ctp-blue); border-color: var(--ctp-blue); color: var(--ctp-base); }
 
-        /* --- MAIN LAYOUT --- */
+        /* --- WORKSPACE --- */
         .workspace {
             flex: 1;
             display: flex;
@@ -140,132 +150,158 @@
             overflow: hidden;
         }
 
-        /* PREVIEW (TOP) */
+        /* PREVIEW */
         #preview {
             flex: 1;
-            padding: 40px;
+            padding: 30px 15%;
             overflow-y: auto;
             background: radial-gradient(circle at 50% 0%, #2f334d 0%, var(--ctp-base) 60%);
             border-bottom: var(--border);
         }
 
-        /* EDITOR (BOTTOM) */
+        /* EDITOR */
         #editor-container {
-            height: 45%; /* Default split */
+            height: 45%;
             background: var(--ctp-mantle);
             position: relative;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
         }
 
-        /* Markdown Styling inside Preview */
-        .markdown-body {
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.7;
-            font-size: 1.05rem;
-        }
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: var(--ctp-lavender); margin-top: 1.5em; border-bottom: 1px solid var(--ctp-surface0); padding-bottom: 0.3em; }
+        /* --- MARKDOWN STYLING --- */
+        .markdown-body { width: 100%; line-height: 1.7; font-size: 1.05rem; }
+        .markdown-body h1, .markdown-body h2 { color: var(--ctp-lavender); margin-top: 1.5em; border-bottom: 1px solid var(--ctp-surface0); padding-bottom: 0.3em; }
         .markdown-body a { color: var(--ctp-blue); text-decoration: none; }
-        .markdown-body a:hover { text-decoration: underline; }
-        .markdown-body code { background: var(--ctp-surface0); padding: 2px 6px; border-radius: 4px; font-family: var(--font-code); font-size: 0.9em; color: var(--ctp-peach); }
-        .markdown-body pre { background: var(--ctp-crust); padding: 15px; border-radius: 8px; overflow-x: auto; border: 1px solid var(--ctp-surface0); }
-        .markdown-body pre code { background: none; color: var(--ctp-text); padding: 0; }
-        .markdown-body blockquote { border-left: 4px solid var(--ctp-mauve); padding-left: 15px; color: var(--ctp-subtext0); margin: 1em 0; }
-        .markdown-body img { max-width: 100%; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: block; margin: 1em 0; }
-        .markdown-body table { width: 100%; border-collapse: collapse; margin: 1em 0; }
-        .markdown-body th, .markdown-body td { border: 1px solid var(--ctp-surface0); padding: 8px; text-align: left; }
+        
+        /* Inline Code */
+        .markdown-body :not(pre) > code { 
+            background: var(--ctp-surface0); 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            font-family: var(--font-code); 
+            font-size: 0.9em; 
+            color: var(--ctp-peach); 
+        }
+
+        .markdown-body pre { 
+            background: var(--ctp-crust); 
+            padding: 20px; 
+            border-radius: 8px; 
+            overflow-x: auto; 
+            border: 1px solid var(--ctp-surface0); 
+            margin: 1.5em 0;
+        }
+        
+        /* Code Block Text */
+        .markdown-body pre code { 
+            background: none; 
+            color: var(--ctp-text); 
+            padding: 0; 
+            font-family: var(--font-code);
+        }
+
+        .markdown-body blockquote { 
+            border-left: 4px solid var(--ctp-mauve); 
+            padding-left: 15px; 
+            color: var(--ctp-subtext0); 
+            background: rgba(198, 160, 246, 0.05); 
+            padding: 10px 15px; 
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .markdown-body img { max-width: 100%; border-radius: 8px; display: block; margin: 1.5em 0; }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin: 1.5em 0; }
+        .markdown-body th, .markdown-body td { border: 1px solid var(--ctp-surface0); padding: 10px; text-align: left; }
         .markdown-body th { background: var(--ctp-surface0); color: var(--ctp-text); }
         
-        /* KaTeX Override for Dark Mode visibility */
-        .katex { font-size: 1.1em; color: var(--ctp-text); }
-        .katex-display { margin: 1em 0; overflow-x: auto; overflow-y: hidden; }
+        .katex { font-size: 1.15em; color: var(--ctp-text); }
 
-        /* CodeMirror Custom Theme (Catppuccin Adaptation) */
+        /* --- HIGHLIGHT.JS CATPPUCCIN MAP --- */
+        .hljs-keyword, .hljs-operator { color: var(--ctp-mauve); }
+        .hljs-title, .hljs-function { color: var(--ctp-blue); }
+        .hljs-string { color: var(--ctp-green); }
+        .hljs-comment { color: var(--ctp-overlay0); font-style: italic; }
+        .hljs-number, .hljs-literal { color: var(--ctp-peach); }
+        .hljs-variable, .hljs-params { color: var(--ctp-text); }
+        .hljs-type, .hljs-class { color: var(--ctp-yellow); }
+        .hljs-built_in { color: var(--ctp-red); }
+
+        /* --- CODEMIRROR (EYE COMFORT) --- */
         .CodeMirror {
             height: 100% !important;
             font-family: var(--font-code);
             font-size: 14px;
+            line-height: 1.6;
             background: var(--ctp-mantle);
-            color: var(--ctp-text);
+            color: var(--ctp-subtext0); 
         }
-        .CodeMirror-gutters { background: var(--ctp-mantle); border-right: 1px solid var(--ctp-surface0); }
+        .CodeMirror-gutters { background: var(--ctp-mantle); border-right: 1px solid var(--ctp-surface0); padding-right: 10px; }
         .CodeMirror-linenumber { color: var(--ctp-surface1); }
         .CodeMirror-cursor { border-left: 2px solid var(--ctp-lavender); }
+        .CodeMirror-activeline-background { background: rgba(54, 58, 79, 0.4); }
+        .CodeMirror-selected { background: var(--ctp-surface1) !important; }
+        
+        /* Editor Syntax */
         .cm-header { color: var(--ctp-blue); font-weight: bold; }
-        .cm-strong { color: var(--ctp-red); font-weight: bold; }
-        .cm-em { color: var(--ctp-peach); font-style: italic; }
-        .cm-link { color: var(--ctp-blue); text-decoration: underline; }
         .cm-string { color: var(--ctp-green); }
-        .cm-code { color: var(--ctp-peach); background: var(--ctp-surface0); border-radius: 2px; }
+        .cm-variable-2 { color: var(--ctp-text); } 
+        .cm-strong { color: var(--ctp-red); font-weight: bold; }
+        .cm-em { color: var(--ctp-yellow); font-style: italic; }
+        .cm-link { color: var(--ctp-teal); text-decoration: none; }
+        .cm-url { color: var(--ctp-subtext0); text-decoration: underline; opacity: 0.7; }
         .cm-quote { color: var(--ctp-mauve); }
-        .cm-variable-2 { color: var(--ctp-mauve); } /* For Math symbols in editor */
+        .cm-comment { color: var(--ctp-peach); }
 
-        /* --- PRINT / PDF STYLES --- */
+        /* --- PRINT --- */
         @media print {
             body { background: white; color: black; display: block; height: auto; overflow: visible; }
             .toolbar, #editor-container { display: none !important; }
-            #preview {
-                position: static;
-                padding: 0;
-                margin: 0;
-                background: white;
-                color: black;
-                overflow: visible;
-                border: none;
-            }
-            .markdown-body {
-                max-width: 100%;
-                color: black;
-            }
-            .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body a { color: black; border-color: #eee; }
+            #preview { position: static; padding: 0; margin: 0; background: white; color: black; overflow: visible; border: none; }
+            .markdown-body { max-width: 100%; color: black; }
             .markdown-body code { border: 1px solid #ddd; background: #f5f5f5; color: #d63384; }
-            .markdown-body pre { background: #f5f5f5; border: 1px solid #ddd; page-break-inside: avoid; }
-            .markdown-body pre code { color: black; }
-            .markdown-body blockquote { border-left: 4px solid #333; color: #555; }
-            .markdown-body img { page-break-inside: avoid; }
-            
-            /* Print Math Colors */
             .katex { color: black !important; }
+            .markdown-body blockquote { border-color: #333; background: none; color: #555; }
+            .markdown-body th, .markdown-body td { border-color: #ddd; }
+            .markdown-body th { background: #f9f9f9; color: black; }
         }
 
-        /* Scrollbars */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: var(--ctp-mantle); }
-        ::-webkit-scrollbar-thumb { background: var(--ctp-surface1); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--ctp-surface1); border-radius: 5px; border: 2px solid var(--ctp-mantle); }
         ::-webkit-scrollbar-thumb:hover { background: var(--ctp-overlay0); }
 
-        /* Upload Input Hidden */
         #fileInput { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- Toolbar -->
     <header class="toolbar">
         <div class="brand">
-        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" onclick="changeColor(event)">
-            <circle cx="100" cy="100" r="80" fill="blue" id="myCircle"/>
-        </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 12-8.5 8.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 0 1 0-3L12 9"/><path d="M17.64 15 22 10.64"/><path d="m20.91 11.7-1.25-1.25c-.6-.6-.93-1.4-.93-2.25V7.86c0-.55-.45-1-1-1-1H16.5c-.85 0-1.65-.33-2.25-.93L13 4.71"/></svg>
             Markdown Blacksmith
         </div>
 
         <div class="controls">
-            <!-- Vim Status -->
             <div id="vim-status" class="status-pill" style="display:none;">NORMAL</div>
             
-            <!-- Toggle Mode -->
-            <button class="btn" id="toggleVim" onclick="toggleVimMode()">
+            <button class="btn" id="toggleVim" onclick="toggleVimMode()" title="Toggle Vim Keybindings">
                 <span id="mode-icon">⚡</span> <span id="mode-text">Easy Mode</span>
             </button>
+            
+            <div style="width: 1px; height: 24px; background: var(--ctp-surface0); margin: 0 4px;"></div>
 
-            <!-- Actions -->
-            <button class="btn" onclick="document.getElementById('fileInput').click()" title="Import .md">
+            <!-- IMPORT -->
+            <button class="btn" onclick="document.getElementById('fileInput').click()" title="Import File">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Import
             </button>
 
+            <!-- EXPORT -->
             <button class="btn" onclick="exportMarkdown()" title="Download .md">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Export
             </button>
-
+            
+            <!-- PDF -->
             <button class="btn btn-primary" onclick="exportPDF()" title="Print / PDF">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                 PDF
@@ -273,98 +309,167 @@
         </div>
     </header>
 
-    <!-- Hidden Input for File Upload -->
     <input type="file" id="fileInput" accept=".md,.txt" onchange="handleFileImport(this)">
 
-    <!-- Main Workspace -->
     <div class="workspace">
         <div id="preview">
-            <div class="markdown-body" id="render-target">
-                <!-- Markdown Content Goes Here -->
-            </div>
+            <div class="markdown-body" id="render-target"></div>
         </div>
         <div id="editor-container"></div>
     </div>
 
     <script>
-        /* --- CONFIGURATION & INIT --- */
-        const DEFAULT_TEXT = `# Math in the Blacksmith
+        const DEFAULT_TEXT = `# ⚒️ Markdown Blacksmith
 
-We support LaTeX math syntax out of the box using **KaTeX**.
+<div align="center">
+  <img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/palette/macchiato.png" width="100%" style="border-radius: 8px; margin: 20px 0;" />
+</div>
 
-### Inline Math
-Find $x$, if $\\log_2 (x + 2) = 3$.
-If $\\sin A = 0.4$, find the value of $\\sin 3A$.
+<div align="center">
+  <img src="https://img.shields.io/badge/Vim_Mode-Supported-a6da95?style=for-the-badge&logo=vim&logoColor=black" />
+  <img src="https://img.shields.io/badge/Math-KaTeX-8aadf4?style=for-the-badge&logo=latex&logoColor=black" />
+  <img src="https://img.shields.io/badge/Privacy-Offline_First-ed8796?style=for-the-badge&logo=torbrowser&logoColor=black" />
+</div>
 
-### Block Math
-The definition of the derivative:
-$$ \\frac{dy}{dx} = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h} $$
+> **A single-file, production-grade Markdown environment forged for the modern developer.**
 
-### Complex Examples
-1. Find $\\frac{dy}{dx}$, if $y = a^x + x^a + e^a + \\log_a x$.
-2. Range of data: 2, 3, 1, 10, 6, 31, 17, 20, 24.
+---
+
+## ⚡ Capabilities
+
+This isn't just a text area. It is a specialized toolchain:
+
+- **🔥 Vim Integration**: Native \`hjkl\` navigation and modal editing (Toggle via Navbar).
+- **📐 Mathematical Precision**: First-class $\\LaTeX$ support via KaTeX.
+- **🔒 Zero-Trust Privacy**: Data never leaves your browser (\`localStorage\`).
+- **📄 White-Paper Export**: One-click PDF generation that strips the dark theme for academic printing.
+- **👁️ Eye-Comfort UI**: Themed in **Catppuccin Macchiato** for long sessions.
+
+---
+
+## 🧮 Math Showcase
+
+We handle complex equations seamlessly.
+
+**The Gaussian Integral:**
+$$ \\int_{-\\infty}^{\\infty} e^{-x^2} \\,dx = \\sqrt{\\pi} $$
+
+**Maxwell's Equations (Differential Form):**
+$$
+\\begin{aligned}
+\\nabla \\cdot \\mathbf{E} &= \\frac{\\rho}{\\varepsilon_0} \\\\
+\\nabla \\times \\mathbf{B} &= \\mu_0\\mathbf{J} + \\mu_0\\varepsilon_0\\frac{\\partial\\mathbf{E}}{\\partial t}
+\\end{aligned}
+$$
+
+---
+
+## 💻 Syntax Highlighting
+
+Blacksmith detects languages automatically.
+
+### Rust
+\`\`\`rust
+fn main() {
+    // The forge is hot! 🔥
+    let power_level: u32 = 9000;
+    println!("It's over {}!", power_level);
+}
+\`\`\`
+
+### JavaScript
+\`\`\`javascript
+const forge = new Blacksmith();
+forge.on('hammer', (sparks) => {
+    console.log(\`Created \${sparks} sparks!\`);
+});
+\`\`\`
+
+---
+
+## ⌨️ Vim Quick Start
+
+New to Vim? Enable **Easy Mode** (top right) or try these:
+
+| Key | Action |
+| :--- | :--- |
+| \`i\` | **Insert** Mode (Start typing) |
+| \`Esc\` | **Normal** Mode (Stop typing) |
+| \`h j k l\` | Move Left, Down, Up, Right |
+| \`dd\` | Delete Line |
+| \`ciw\` | Change Word |
+
+---
+
+> *Forged by ShadowToys. Drop a file or start editing.*
 `;
 
         let isVimMode = false;
-        const storageKey = 'blacksmith_math_content';
+        const storageKey = 'blacksmith_final_content';
         const renderTarget = document.getElementById('render-target');
         const vimStatusEl = document.getElementById('vim-status');
+        const previewEl = document.getElementById('preview');
         
-        // Configure Marked to use KaTeX
-        // This extension prevents markdown parsing from breaking math syntax (like _ for italics)
         if (window.markedKatex) {
-            marked.use(markedKatex({ 
-                throwOnError: false, 
-                output: 'html' // Ensure it outputs HTML that KaTeX css can style
-            }));
+            marked.use(markedKatex({ throwOnError: false, output: 'html' }));
         }
 
-        // Initialize CodeMirror
         const editor = CodeMirror(document.getElementById('editor-container'), {
             value: localStorage.getItem(storageKey) || DEFAULT_TEXT,
             mode: "markdown",
-            theme: "default", // Overridden by CSS
+            theme: "default",
             lineNumbers: true,
             lineWrapping: true,
             scrollbarStyle: "native",
-            autofocus: true
+            autofocus: true,
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            styleActiveLine: true,
         });
 
-        /* --- LOGIC --- */
-
-        // render on init
         updatePreview();
 
-        // Update loop (Debounce slightly for math performance)
         let debounceTimer;
         editor.on('change', () => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 updatePreview();
                 saveContent();
-            }, 150);
+            }, 100);
+        });
+
+        // Scroll Sync
+        let isHoveringEditor = false;
+        document.getElementById('editor-container').addEventListener('mouseover', () => isHoveringEditor = true);
+        document.getElementById('editor-container').addEventListener('mouseout', () => isHoveringEditor = false);
+
+        editor.on("scroll", () => {
+            if (!isHoveringEditor) return;
+            const info = editor.getScrollInfo();
+            const percentage = info.top / (info.height - info.clientHeight);
+            const previewHeight = previewEl.scrollHeight - previewEl.clientHeight;
+            previewEl.scrollTop = percentage * previewHeight;
         });
 
         function updatePreview() {
             const raw = editor.getValue();
-            
-            // 1. Parse Markdown (which includes the Math extension)
             const html = marked.parse(raw);
-            
-            // 2. Sanitize HTML (Allowing math classes and spans)
             const cleanHtml = DOMPurify.sanitize(html, {
-                ADD_TAGS: ['span', 'div', 'math', 'annotation', 'semantics', 'mrow', 'mn', 'mo', 'mi', 'msup', 'msub', 'mfrac'],
-                ADD_ATTR: ['class', 'style', 'aria-hidden', 'focusable', 'role', 'xmlns', 'display'] // Attributes needed by KaTeX
+                ADD_TAGS: ['span', 'div', 'math', 'annotation', 'semantics', 'mrow', 'mn', 'mo', 'mi', 'msup', 'msub', 'mfrac', 'mtable', 'mtr', 'mtd', 'img'],
+                ADD_ATTR: ['class', 'style', 'aria-hidden', 'focusable', 'role', 'xmlns', 'display', 'src', 'alt', 'width', 'align']
             });
-            
             renderTarget.innerHTML = cleanHtml;
+            
+            // Apply Syntax Highlighting
+            renderTarget.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
         }
 
         function saveContent() {
             localStorage.setItem(storageKey, editor.getValue());
         }
 
-        /* --- VIM MODE HANDLING --- */
         function toggleVimMode() {
             isVimMode = !isVimMode;
             const btnText = document.getElementById('mode-text');
@@ -375,12 +480,8 @@ $$ \\frac{dy}{dx} = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h} $$
                 btnText.innerText = "Vim Mode";
                 btnIcon.innerText = "🔥";
                 vimStatusEl.style.display = "block";
-                updateVimStatus('NORMAL'); // Default
-                
-                // Hook into CodeMirror Vim events
-                CodeMirror.on(editor, "vim-mode-change", (e) => {
-                    updateVimStatus(e.mode.toUpperCase());
-                });
+                updateVimStatus('NORMAL');
+                CodeMirror.on(editor, "vim-mode-change", (e) => updateVimStatus(e.mode.toUpperCase()));
             } else {
                 editor.setOption("keyMap", "default");
                 btnText.innerText = "Easy Mode";
@@ -392,34 +493,24 @@ $$ \\frac{dy}{dx} = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h} $$
         }
 
         function updateVimStatus(mode) {
-            vimStatusEl.innerText = `-- ${mode} --`;
-            
-            // Remove old classes
-            vimStatusEl.classList.remove('vim-normal', 'vim-insert', 'vim-visual', 'vim-replace');
-            
-            // Add new class based on mode
+            vimStatusEl.innerText = mode;
+            vimStatusEl.className = 'status-pill';
             if (mode.includes('INSERT')) vimStatusEl.classList.add('vim-insert');
             else if (mode.includes('VISUAL')) vimStatusEl.classList.add('vim-visual');
-            else if (mode.includes('REPLACE')) vimStatusEl.classList.add('vim-replace');
             else vimStatusEl.classList.add('vim-normal');
         }
 
-        /* --- IMPORT / EXPORT --- */
-
-        // Import
         function handleFileImport(input) {
             const file = input.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
                 editor.setValue(e.target.result);
-                // Clear input
                 input.value = '';
             };
             reader.readAsText(file);
         }
 
-        // Drag & Drop Import
         document.body.addEventListener('dragover', e => e.preventDefault());
         document.body.addEventListener('drop', e => {
             e.preventDefault();
@@ -430,20 +521,18 @@ $$ \\frac{dy}{dx} = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h} $$
             }
         });
 
-        // Export MD
         function exportMarkdown() {
             const blob = new Blob([editor.getValue()], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'blacksmith_math.md';
+            a.download = 'blacksmith_forge.md';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
 
-        // Export PDF (Using native print)
         function exportPDF() {
             window.print();
         }
