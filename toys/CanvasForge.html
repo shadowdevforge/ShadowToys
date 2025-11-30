@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ArtForge | Digital Canvas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Catppuccin Macchiato */
+            --base: #24273a;
+            --mantle: #1e2030;
+            --surface0: #363a4f;
+            --surface1: #494d64;
+            --text: #cad3f5;
+            --blue: #8aadf4;
+            --mauve: #c6a0f6;
+            --red: #ed8796;
+            --yellow: #eed49f;
+            --green: #a6da95;
+            --overlay0: #6e738d;
+            
+            --radius: 12px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--base);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none; /* Prevent scrolling on mobile */
+        }
+
+        /* The Canvas Board */
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff; /* White paper */
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Floating UI Bars */
+        .toolbar {
+            position: absolute;
+            background: rgba(30, 32, 48, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--surface0);
+            border-radius: var(--radius);
+            padding: 8px;
+            display: flex;
+            gap: 8px;
+            box-shadow: var(--shadow);
+            z-index: 10;
+            transition: opacity 0.2s;
+        }
+
+        /* Top Bar: Actions */
+        .top-bar {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            align-items: center;
+        }
+
+        /* Left Bar: Tools */
+        .tools-bar {
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            flex-direction: column;
+        }
+
+        /* Right Bar: Colors/Props */
+        .props-bar {
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            flex-direction: column;
+            align-items: center;
+            width: 50px;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .btn:hover { background: var(--surface0); color: var(--mauve); }
+        .btn.active { background: var(--surface1); color: var(--yellow); }
+        .btn svg { width: 20px; height: 20px; stroke-width: 2.5; }
+
+        /* Color Picker */
+        .color-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 6px;
+        }
+        .color-dot:hover { transform: scale(1.1); }
+        .color-dot.active { border-color: var(--text); transform: scale(1.1); }
+
+        /* Sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100px; /* Rotate creates layout issues, simplified */
+            height: 4px;
+            background: var(--surface0);
+            border-radius: 2px;
+            outline: none;
+            margin: 10px 0;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--blue);
+            cursor: pointer;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .tools-bar {
+                left: 0; bottom: 0; top: auto; width: 100%;
+                transform: none; flex-direction: row; justify-content: center;
+                border-radius: 20px 20px 0 0;
+                padding-bottom: 20px;
+            }
+            .props-bar {
+                top: 20px; right: 10px; transform: none;
+                flex-direction: row; flex-wrap: wrap; width: 40px;
+                background: transparent; border: none; box-shadow: none;
+            }
+            .top-bar { top: 20px; width: 90%; justify-content: space-between; }
+            .color-dot { width: 32px; height: 32px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container">
+        <canvas id="drawingCanvas"></canvas>
+    </div>
+
+    <!-- Top: File & History -->
+    <div class="toolbar top-bar">
+        <button class="btn" id="btn-undo" title="Undo (Ctrl+Z)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+        </button>
+        <button class="btn" id="btn-redo" title="Redo (Ctrl+Y)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/></svg>
+        </button>
+        <div style="width:1px; height:20px; background:var(--surface1); margin:0 8px;"></div>
+        <button class="btn" id="btn-clear" title="Clear Canvas">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+        <button class="btn" id="btn-save" title="Save Image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+    </div>
+
+    <!-- Left: Tools -->
+    <div class="toolbar tools-bar">
+        <button class="btn active" data-tool="brush" title="Brush">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13.297l-7.393 7.393a2.91 2.91 0 0 1-4.116 0 2.91 2.91 0 0 1 0-4.116L13.884 9.182a4.95 4.95 0 0 1 7.002 0c1.933 1.933 1.933 5.069 0 7.002z"/><path d="M2 2l10 10"/></svg>
+        </button>
+        <button class="btn" data-tool="line" title="Line">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+        </button>
+        <button class="btn" data-tool="rect" title="Rectangle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+        </button>
+        <button class="btn" data-tool="circle" title="Circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+        </button>
+        <button class="btn" data-tool="eraser" title="Eraser">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16C2 15 2 13 3 12L13 2L22 11L20 20Z"/><path d="M17 17L7 7"/></svg>
+        </button>
+    </div>
+
+    <!-- Right: Properties -->
+    <div class="toolbar props-bar">
+        <div class="color-dot active" style="background:#24273a" data-color="#24273a"></div>
+        <div class="color-dot" style="background:#ed8796" data-color="#ed8796"></div>
+        <div class="color-dot" style="background:#f5a97f" data-color="#f5a97f"></div>
+        <div class="color-dot" style="background:#eed49f" data-color="#eed49f"></div>
+        <div class="color-dot" style="background:#a6da95" data-color="#a6da95"></div>
+        <div class="color-dot" style="background:#8aadf4" data-color="#8aadf4"></div>
+        <div class="color-dot" style="background:#c6a0f6" data-color="#c6a0f6"></div>
+        
+        <div style="height:1px; width:30px; background:var(--surface1); margin:8px 0;"></div>
+        
+        <!-- Size input hidden visual, functionality only -->
+        <input type="color" id="customColor" value="#24273a" style="width:28px; height:28px; border:none; padding:0; border-radius:50%; overflow:hidden;">
+        
+        <div style="height:1px; width:30px; background:var(--surface1); margin:8px 0;"></div>
+        
+        <div style="font-size:10px; color:var(--overlay0); margin-bottom:2px">SIZE</div>
+        <div style="font-weight:bold; font-size:12px; margin-bottom:4px" id="sizeVal">5</div>
+        <div style="display:flex; flex-direction: column; align-items:center;">
+            <button class="btn" onclick="adjustSize(1)">+</button>
+            <button class="btn" onclick="adjustSize(-1)">-</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG & STATE ---
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
+        let state = {
+            isDrawing: false,
+            tool: 'brush', // brush, line, rect, circle, eraser
+            color: '#24273a',
+            size: 5,
+            startX: 0,
+            startY: 0,
+            snapshot: null, // For shape previews
+            history: [],
+            historyStep: -1
+        };
+
+        // --- INIT ---
+        function resize() {
+            // Save content
+            let temp;
+            if (canvas.width > 0) temp = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // Restore content if exists, otherwise clear white
+            if (temp) {
+                ctx.putImageData(temp, 0, 0);
+            } else {
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                saveState(); // Initial blank state
+            }
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- DRAWING LOGIC ---
+        const getPos = (e) => {
+            if (e.touches) {
+                return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+            return { x: e.clientX, y: e.clientY };
+        };
+
+        const startDraw = (e) => {
+            state.isDrawing = true;
+            const pos = getPos(e);
+            state.startX = pos.x;
+            state.startY = pos.y;
+            
+            ctx.beginPath();
+            ctx.lineWidth = state.size;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = state.tool === 'eraser' ? '#ffffff' : state.color;
+
+            // Snapshot for shapes
+            state.snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        };
+
+        const draw = (e) => {
+            if (!state.isDrawing) return;
+            const pos = getPos(e);
+
+            if (state.tool === 'brush' || state.tool === 'eraser') {
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+            } else {
+                // Restore snapshot to avoid trails for shapes
+                ctx.putImageData(state.snapshot, 0, 0);
+                drawShape(pos.x, pos.y);
+            }
+        };
+
+        const drawShape = (currX, currY) => {
+            ctx.beginPath();
+            if (state.tool === 'line') {
+                ctx.moveTo(state.startX, state.startY);
+                ctx.lineTo(currX, currY);
+            } else if (state.tool === 'rect') {
+                ctx.strokeRect(state.startX, state.startY, currX - state.startX, currY - state.startY);
+                return; // strokeRect draws itself
+            } else if (state.tool === 'circle') {
+                const r = Math.sqrt(Math.pow(currX - state.startX, 2) + Math.pow(currY - state.startY, 2));
+                ctx.arc(state.startX, state.startY, r, 0, 2 * Math.PI);
+            }
+            ctx.stroke();
+        };
+
+        const stopDraw = () => {
+            if (!state.isDrawing) return;
+            state.isDrawing = false;
+            saveState();
+        };
+
+        // --- EVENTS ---
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDraw);
+        
+        canvas.addEventListener('touchstart', startDraw);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDraw);
+
+        // --- HISTORY (Undo/Redo) ---
+        function saveState() {
+            // Remove redo steps if we draw something new
+            if (state.historyStep < state.history.length - 1) {
+                state.history = state.history.slice(0, state.historyStep + 1);
+            }
+            state.history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            state.historyStep++;
+            
+            // Limit history to 20 steps to save RAM
+            if(state.history.length > 20) {
+                state.history.shift();
+                state.historyStep--;
+            }
+        }
+
+        document.getElementById('btn-undo').addEventListener('click', () => {
+            if (state.historyStep > 0) {
+                state.historyStep--;
+                ctx.putImageData(state.history[state.historyStep], 0, 0);
+            }
+        });
+
+        document.getElementById('btn-redo').addEventListener('click', () => {
+            if (state.historyStep < state.history.length - 1) {
+                state.historyStep++;
+                ctx.putImageData(state.history[state.historyStep], 0, 0);
+            }
+        });
+
+        // --- TOOLS ---
+        document.querySelectorAll('.tools-bar .btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('.tools-bar .btn.active').classList.remove('active');
+                btn.classList.add('active');
+                state.tool = btn.dataset.tool;
+            });
+        });
+
+        // --- COLORS ---
+        document.querySelectorAll('.color-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                document.querySelector('.color-dot.active')?.classList.remove('active');
+                dot.classList.add('active');
+                state.color = dot.dataset.color;
+            });
+        });
+
+        const customColor = document.getElementById('customColor');
+        customColor.addEventListener('input', (e) => {
+            document.querySelector('.color-dot.active')?.classList.remove('active');
+            state.color = e.target.value;
+        });
+
+        // --- ACTIONS ---
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            saveState();
+        });
+
+        document.getElementById('btn-save').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = `artforge_${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        // Size Adjustment
+        window.adjustSize = (delta) => {
+            state.size = Math.max(1, Math.min(50, state.size + delta));
+            document.getElementById('sizeVal').innerText = state.size;
+        };
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') document.getElementById('btn-undo').click();
+            if ((e.ctrlKey || e.metaKey) && e.key === 'y') document.getElementById('btn-redo').click();
+        });
+
+    </script>
+</body>
+</html>
