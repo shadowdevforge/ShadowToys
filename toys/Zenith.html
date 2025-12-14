@@ -1,601 +1,683 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#1e1e2e">
-    <title>ZENITH // ONE</title>
-    <style>
-        /* --- ZENITH THEME: CATPPUCCIN MOCHA --- */
-        :root {
-            --bg: #1e1e2e; --mantle: #181825; --crust: #11111b;
-            --text: #cdd6f4; --subtext: #a6adc8; --overlay: #6c7086;
-            --surface0: #313244; --surface1: #45475a; --surface2: #585b70;
-            
-            --rosewater: #f5e0dc; --flamingo: #f2cdcd; --pink: #f5c2e7;
-            --mauve: #cba6f7; --red: #f38ba8; --maroon: #eba0ac;
-            --peach: #fab387; --yellow: #f9e2af; --green: #a6e3a1;
-            --teal: #94e2d5; --sky: #89dceb; --sapphire: #74c7ec;
-            --blue: #89b4fa; --lavender: #b4befe;
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Zenith // Flow</title>
+  <meta name="theme-color" content="#1e1e2e">
 
-            --font-ui: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-            --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-            --glass: rgba(30, 30, 46, 0.7);
-            --shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-            
-            --radius-lg: 16px; --radius-md: 10px; --radius-sm: 6px;
-            --ease: cubic-bezier(0.23, 1, 0.32, 1);
-        }
+  <!-- SortableJS for Touch-Friendly Drag and Drop -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font-ui); }
-        
-        /* ICONS FIXED */
-        svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; display: block; }
+  <style>
+    /* --- THEME: Catppuccin Mocha --- */
+    :root {
+      --base: #1e1e2e;
+      --mantle: #181825;
+      --crust: #11111b;
+      --text: #cdd6f4;
+      --subtext: #a6adc8;
+      --overlay: #6c7086;
+      --surface0: #313244;
+      --surface1: #45475a;
+      --surface2: #585b70;
+      --mauve: #cba6f7;
+      --blue: #89b4fa;
+      --red: #f38ba8;
+      --peach: #fab387;
+      --green: #a6e3a1;
+      --yellow: #f9e2af;
 
-        /* --- LAYOUT SHELL --- */
-        .shell { display: grid; grid-template-columns: 260px 1fr; height: 100%; transition: all 0.3s var(--ease); }
-        
-        /* --- SIDEBAR --- */
-        .sidebar {
-            background: var(--mantle); border-right: 1px solid var(--surface0);
-            display: flex; flex-direction: column; z-index: 50;
-            padding: 16px; gap: 8px;
-            transition: transform 0.3s var(--ease);
-        }
-        
-        .brand {
-            font-size: 1.1rem; font-weight: 900; letter-spacing: -0.5px; color: var(--mauve);
-            padding: 8px 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
-        }
-        
-        .nav-section { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
-        .nav-header { 
-            font-size: 0.7rem; font-weight: 700; color: var(--overlay); 
-            text-transform: uppercase; letter-spacing: 1px; padding: 0 12px; margin-bottom: 6px;
-        }
-        
-        .nav-item {
-            padding: 10px 12px; border-radius: var(--radius-md); cursor: pointer;
-            color: var(--subtext); font-size: 0.9rem; font-weight: 500;
-            display: flex; align-items: center; gap: 10px; transition: all 0.2s;
-            border: 1px solid transparent;
-        }
-        .nav-item:hover { background: var(--surface0); color: var(--text); }
-        .nav-item.active { background: var(--surface1); color: var(--text); border-color: var(--surface2); }
-        
-        /* PARA Colors */
-        .nav-item[data-type="project"].active { color: var(--red); background: rgba(243, 139, 168, 0.1); border-color: rgba(243, 139, 168, 0.2); }
-        .nav-item[data-type="area"].active { color: var(--blue); background: rgba(137, 180, 250, 0.1); border-color: rgba(137, 180, 250, 0.2); }
-        .nav-item[data-type="resource"].active { color: var(--green); background: rgba(166, 227, 161, 0.1); border-color: rgba(166, 227, 161, 0.2); }
-        .nav-item[data-type="archive"].active { color: var(--overlay); background: rgba(108, 112, 134, 0.1); border-color: rgba(108, 112, 134, 0.2); }
+      --font-ui: 'Inter', sans-serif;
+      --radius: 12px;
+      --shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.5);
+      --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
 
-        .count-badge { margin-left: auto; font-size: 0.75rem; opacity: 0.6; background: var(--surface0); padding: 2px 6px; border-radius: 4px; }
+    * {
+      box-sizing: border-box;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        /* --- STAGE --- */
-        .stage { position: relative; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
-        
-        .header {
-            height: 64px; display: flex; align-items: center; justify-content: space-between;
-            padding: 0 24px; border-bottom: 1px solid var(--surface0); flex-shrink: 0;
-            background: rgba(30, 30, 46, 0.8); backdrop-filter: blur(10px); z-index: 10;
-        }
-        .page-title { font-size: 1.2rem; font-weight: 800; color: var(--text); }
-        
-        .actions { display: flex; gap: 10px; }
-        .btn {
-            background: var(--surface0); border: 1px solid var(--surface1); color: var(--text);
-            height: 36px; padding: 0 16px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.85rem;
-            display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;
-        }
-        .btn:hover { background: var(--surface1); transform: translateY(-1px); }
-        .btn-primary { background: var(--mauve); color: var(--base); border: none; }
-        .btn-primary:hover { background: var(--pink); box-shadow: 0 4px 12px rgba(203, 166, 247, 0.3); }
+    body {
+      margin: 0;
+      background: var(--base);
+      color: var(--text);
+      font-family: var(--font-ui);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-        /* --- VIEWS --- */
-        .view { display: none; flex: 1; overflow: hidden; animation: fadeUp 0.3s var(--ease); }
-        .view.active { display: flex; flex-direction: column; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    /* --- HEADER --- */
+    header {
+      height: 60px;
+      padding: 0 20px;
+      background: rgba(24, 24, 37, 0.8);
+      border-bottom: 1px solid var(--surface0);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 10;
+    }
 
-        /* --- DASHBOARD GRID --- */
-        .grid-container { padding: 30px; overflow-y: auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        
-        .card {
-            background: var(--surface0); border: 1px solid var(--surface1); border-radius: var(--radius-lg);
-            padding: 24px; cursor: pointer; position: relative; overflow: hidden; transition: all 0.2s var(--ease);
-            display: flex; flex-direction: column; gap: 12px; height: 180px;
-        }
-        .card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--surface2); }
-        
-        .card-tag { 
-            align-self: flex-start; padding: 4px 10px; border-radius: 20px; 
-            font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .card-title { font-size: 1.3rem; font-weight: 700; line-height: 1.3; color: var(--text); }
-        .card-meta { margin-top: auto; display: flex; align-items: center; gap: 8px; color: var(--subtext); font-size: 0.85rem; }
+    .brand {
+      font-weight: 900;
+      font-size: 1.2rem;
+      letter-spacing: -0.5px;
+      color: var(--mauve);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        /* --- EDITOR --- */
-        .editor-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        
-        .meta-bar {
-            padding: 16px 24px; border-bottom: 1px solid var(--surface0); background: var(--mantle);
-            display: flex; gap: 20px; align-items: center;
-        }
-        .input-title {
-            background: transparent; border: none; font-size: 1.1rem; font-weight: 700; color: var(--text);
-            flex: 1; font-family: var(--font-ui);
-        }
-        .select-type {
-            background: var(--surface0); border: 1px solid var(--surface1); color: var(--text);
-            padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.9rem;
-        }
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
 
-        .editor-split { flex: 1; display: flex; overflow: hidden; position: relative; }
-        
-        .editor-area {
-            flex: 1; border: none; background: var(--bg); color: var(--text);
-            padding: 40px; font-family: var(--font-mono); font-size: 1rem; line-height: 1.6;
-            resize: none; white-space: pre-wrap; overflow-y: auto;
-        }
-        
-        .preview-area {
-            flex: 1; padding: 40px; background: var(--bg); overflow-y: auto;
-            border-left: 1px solid var(--surface0); display: none; /* Hidden by default */
-            color: var(--text); line-height: 1.6;
-        }
-        .preview-area.visible { display: block; }
+    .btn {
+      background: var(--surface0);
+      border: none;
+      color: var(--text);
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
 
-        /* MARKDOWN STYLES (Fixed) */
-        .md h1 { font-size: 2em; color: var(--mauve); margin-top: 0.5em; margin-bottom: 0.5em; border-bottom: 1px solid var(--surface0); padding-bottom: 0.3em; font-weight: 800; }
-        .md h2 { font-size: 1.5em; color: var(--peach); margin-top: 1.2em; margin-bottom: 0.5em; font-weight: 700; }
-        .md h3 { font-size: 1.2em; color: var(--teal); margin-top: 1em; font-weight: 600; }
-        .md p { margin-bottom: 1em; }
-        .md ul, .md ol { padding-left: 1.5em; margin-bottom: 1em; }
-        .md li { margin-bottom: 0.3em; }
-        .md blockquote { border-left: 4px solid var(--blue); padding-left: 1em; margin: 1em 0; color: var(--subtext); font-style: italic; background: var(--mantle); padding: 10px; border-radius: 4px; }
-        .md code { background: var(--surface0); padding: 0.2em 0.4em; border-radius: 4px; font-family: var(--font-mono); font-size: 0.9em; color: var(--pink); }
-        .md pre { background: var(--crust); padding: 15px; border-radius: 8px; overflow-x: auto; margin: 1em 0; border: 1px solid var(--surface0); }
-        .md pre code { background: transparent; padding: 0; color: var(--text); }
-        .md hr { border: none; border-top: 1px solid var(--surface0); margin: 2em 0; }
-        .md b { color: var(--red); }
-        .md a { color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--blue); }
-        
-        /* Checkboxes */
-        .md-task { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-        .md-task input { accent-color: var(--green); width: 16px; height: 16px; }
-        .md-task.done { text-decoration: line-through; color: var(--overlay); }
+    .btn:hover {
+      background: var(--surface1);
+    }
 
-        /* --- MOBILE OVERLAY --- */
-        .mobile-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-            z-index: 40; display: none; opacity: 0; transition: opacity 0.3s var(--ease);
-        }
-        .mobile-overlay.open { display: block; opacity: 1; }
+    .btn-primary {
+      background: var(--mauve);
+      color: var(--base);
+    }
 
-        /* --- MOBILE MEDIA QUERIES --- */
-        @media (max-width: 768px) {
-            .shell { grid-template-columns: 1fr; }
-            .sidebar {
-                position: fixed; top: 0; left: 0; height: 100%; width: 280px;
-                transform: translateX(-100%); 
-                box-shadow: 20px 0 50px rgba(0,0,0,0.5);
-            }
-            .sidebar.open { transform: translateX(0); }
-            
-            .editor-split { flex-direction: column; }
-            .editor-area { border-right: none; padding: 20px; }
-            .preview-area { border-left: none; padding: 20px; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 5; }
-            
-            .meta-bar { padding: 10px 15px; flex-direction: column; align-items: flex-start; gap: 10px; }
-            .input-title { width: 100%; }
-            #mobile-toggle { display: block !important; }
-            .header { padding: 0 15px; }
-        }
-        #mobile-toggle { display: none; }
+    .btn-primary:hover {
+      background: #dcc1ff;
+    }
 
-        /* --- COMMAND PALETTE --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 100;
-            display: none; align-items: flex-start; justify-content: center; padding-top: 15vh;
-        }
-        .modal-overlay.open { display: flex; }
-        .palette {
-            width: 600px; max-width: 90%; background: var(--mantle);
-            border: 1px solid var(--surface1); border-radius: var(--radius-lg);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6); overflow: hidden;
-            display: flex; flex-direction: column;
-        }
-        .palette-input {
-            padding: 20px; background: transparent; border: none; border-bottom: 1px solid var(--surface0);
-            font-size: 1.1rem; color: var(--text); width: 100%;
-        }
-        .palette-list { max-height: 300px; overflow-y: auto; padding: 8px; }
-        .cmd-item {
-            padding: 12px 16px; border-radius: var(--radius-sm); cursor: pointer;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .cmd-item:hover { background: var(--surface0); }
+    .btn-icon {
+      width: 36px;
+      padding: 0;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
 
-    </style>
+    /* --- BOARD --- */
+    .board {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: hidden;
+      display: flex;
+      gap: 16px;
+      padding: 20px;
+      scroll-snap-type: x mandatory;
+    }
+
+    .column {
+      background: var(--mantle);
+      border: 1px solid var(--surface0);
+      min-width: 300px;
+      max-width: 300px;
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      max-height: 100%;
+      scroll-snap-align: center;
+      transition: border-color 0.2s;
+    }
+
+    .column:focus-within {
+      border-color: var(--surface2);
+    }
+
+    .col-header {
+      padding: 16px;
+      font-weight: 700;
+      color: var(--subtext);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: grab;
+    }
+
+    .col-count {
+      background: var(--surface0);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      color: var(--text);
+    }
+
+    .col-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 12px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* SortableJS Ghost Class */
+    .sortable-ghost {
+      opacity: 0.4;
+      background: var(--surface1);
+      border: 2px dashed var(--overlay);
+    }
+
+    .sortable-drag {
+      cursor: grabbing;
+      opacity: 1;
+      transform: scale(1.02);
+      box-shadow: var(--shadow);
+    }
+
+    /* --- CARDS --- */
+    .card {
+      background: var(--surface0);
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform 0.2s, border-color 0.2s;
+      position: relative;
+      group;
+    }
+
+    .card:hover {
+      border-color: var(--surface2);
+      transform: translateY(-2px);
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .card-text {
+      font-size: 0.95rem;
+      line-height: 1.4;
+      color: var(--text);
+      word-wrap: break-word;
+    }
+
+    /* Tag Colors */
+    .tag-high {
+      background: rgba(243, 139, 168, 0.15);
+      color: var(--red);
+    }
+
+    .tag-med {
+      background: rgba(250, 179, 135, 0.15);
+      color: var(--peach);
+    }
+
+    .tag-low {
+      background: rgba(137, 180, 250, 0.15);
+      color: var(--blue);
+    }
+
+    .tag-dev {
+      background: rgba(166, 227, 161, 0.15);
+      color: var(--green);
+    }
+
+    .add-card-btn {
+      margin: 0 12px 12px 12px;
+      padding: 10px;
+      background: transparent;
+      border: 1px dashed var(--surface2);
+      border-radius: 8px;
+      color: var(--subtext);
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .add-card-btn:hover {
+      background: var(--surface0);
+      color: var(--text);
+      border-color: var(--text);
+    }
+
+    /* --- MODALS --- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      background: var(--mantle);
+      width: 90%;
+      max-width: 500px;
+      border-radius: var(--radius);
+      border: 1px solid var(--surface1);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      transform: translateY(20px);
+      transition: transform 0.2s;
+    }
+
+    .modal-overlay.open .modal {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--subtext);
+      margin-bottom: 6px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      background: var(--base);
+      border: 1px solid var(--surface0);
+      color: var(--text);
+      padding: 10px;
+      border-radius: 8px;
+      font-family: inherit;
+      resize: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--mauve);
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 24px;
+    }
+
+    .flex-right {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Mobile specific adjustments */
+    @media (max-width: 600px) {
+      .column {
+        min-width: 85vw;
+        max-width: 85vw;
+      }
+
+      .board {
+        padding: 10px;
+        gap: 10px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" id="mob-overlay" onclick="UI.toggleSidebar(false)"></div>
-
-<div class="shell">
-    
-    <!-- SIDEBAR -->
-    <div class="sidebar" id="sidebar">
-        <div class="brand">
-            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            ZENITH // ONE
-        </div>
-        
-        <div class="nav-section">
-            <div class="nav-header">Workspace</div>
-            <div class="nav-item active" onclick="Router.go('dashboard')">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                Dashboard
-            </div>
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-header">PARA System</div>
-            <div class="nav-item" data-type="project" onclick="Router.go('project')">
-                <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                Projects
-                <span class="count-badge" id="c-proj">0</span>
-            </div>
-            <div class="nav-item" data-type="area" onclick="Router.go('area')">
-                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                Areas
-                <span class="count-badge" id="c-area">0</span>
-            </div>
-            <div class="nav-item" data-type="resource" onclick="Router.go('resource')">
-                <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                Resources
-                <span class="count-badge" id="c-res">0</span>
-            </div>
-            <div class="nav-item" data-type="archive" onclick="Router.go('archive')">
-                <svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
-                Archives
-                <span class="count-badge" id="c-arch">0</span>
-            </div>
-        </div>
-        
-        <div style="flex:1"></div>
-        <div class="nav-item" onclick="Cmd.toggle()">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-            Settings (Cmd+K)
-        </div>
+  <header>
+    <div class="brand">
+      <i class="ph-fill ph-kanban"></i> Zenith // Flow
     </div>
-
-    <!-- MAIN STAGE -->
-    <div class="stage">
-        <div class="header">
-            <div style="display:flex; align-items:center; gap:12px">
-                <button class="btn" id="mobile-toggle" onclick="UI.toggleSidebar(true)">☰</button>
-                <div class="page-title" id="page-title">Dashboard</div>
-            </div>
-            <div class="actions" id="header-actions">
-                <!-- Injected via JS -->
-            </div>
-        </div>
-
-        <!-- GRID VIEW -->
-        <div id="view-grid" class="view active">
-            <div class="grid-container">
-                <div class="grid" id="card-grid"></div>
-            </div>
-        </div>
-
-        <!-- EDITOR VIEW -->
-        <div id="view-editor" class="view">
-            <div class="editor-container">
-                <div class="meta-bar">
-                    <input type="text" class="input-title" id="doc-title" placeholder="Untitled Item">
-                    <select class="select-type" id="doc-type" onchange="Editor.saveMeta()">
-                        <option value="project">Project</option>
-                        <option value="area">Area</option>
-                        <option value="resource">Resource</option>
-                        <option value="archive">Archive</option>
-                    </select>
-                </div>
-                <div class="editor-split">
-                    <textarea class="editor-area" id="editor-in" placeholder="Write something amazing..."></textarea>
-                    <div class="preview-area" id="preview-out"></div>
-                </div>
-            </div>
-        </div>
+    <div class="actions">
+      <button class="btn btn-icon" onclick="App.exportData()" title="Export JSON"><i
+          class="ph-bold ph-download-simple"></i></button>
+      <button class="btn btn-icon" onclick="document.getElementById('importFile').click()" title="Import JSON"><i
+          class="ph-bold ph-upload-simple"></i></button>
+      <button class="btn btn-icon" onclick="App.clearData()" title="Reset Board"><i
+          class="ph-bold ph-trash"></i></button>
+      <input type="file" id="importFile" style="display:none" onchange="App.importData(this)">
     </div>
-</div>
+  </header>
 
-<!-- COMMAND PALETTE -->
-<div class="modal-overlay" id="palette-overlay" onclick="if(event.target===this) Cmd.toggle()">
-    <div class="palette">
-        <input type="text" class="palette-input" id="cmd-input" placeholder="What do you need?">
-        <div class="palette-list" id="cmd-results"></div>
+  <div class="board" id="board">
+    <!-- Columns Injected Here -->
+  </div>
+
+  <!-- Edit/Add Modal -->
+  <div class="modal-overlay" id="cardModal">
+    <div class="modal">
+      <div class="modal-header" id="modalTitle">Edit Card</div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="cardText" rows="4" placeholder="What needs to be done?"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Priority / Tag</label>
+        <select id="cardTag">
+          <option value="">None</option>
+          <option value="tag-high">High Priority</option>
+          <option value="tag-med">Medium Priority</option>
+          <option value="tag-low">Low Priority</option>
+          <option value="tag-dev">Development</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" style="color: var(--red)" onclick="App.deleteCard()" id="btnDelete">Delete</button>
+        <div class="flex-right">
+          <button class="btn" onclick="UI.closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="App.saveCard()">Save</button>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<script>
-/**
- * ZENITH // ONE ENGINE
- */
+  <script>
+    /**
+     * ZENITH FLOW ENGINE
+     * Architecture: Singleton State + SortableJS Integration
+     */
 
-/* --- STATE --- */
-const Store = {
-    data: { items: {} },
-    init() {
-        const local = localStorage.getItem('zenith_one_v2');
-        if(local) {
-            try { this.data = JSON.parse(local); } catch(e) { console.error(e); }
-        } else {
-            this.createItem('Welcome to Zenith', 'area', '# Get Started\n\n- [x] Explore the sidebar\n- [ ] Create your first Project\n- [ ] Export your data (Cmd+K)');
+    const STORAGE_KEY = 'zenith_flow_v1';
+
+    const State = {
+      data: {
+        columns: [
+          {id: 'c1', title: 'To Do', cards: []},
+          {id: 'c2', title: 'In Progress', cards: []},
+          {id: 'c3', title: 'Done', cards: []}
+        ]
+      },
+
+      // Tracking active edits
+      editing: {colId: null, cardId: null},
+
+      load() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          try {this.data = JSON.parse(raw);}
+          catch (e) {console.error('Data corrupted, resetting');}
         }
-        this.updateCounts();
-    },
-    save() {
-        localStorage.setItem('zenith_one_v2', JSON.stringify(this.data));
-        this.updateCounts();
-    },
-    createItem(title, type, content = '') {
-        const id = Date.now().toString(36);
-        this.data.items[id] = { id, title, type, content, updated: Date.now() };
-        this.save();
-        return id;
-    },
-    updateItem(id, payload) {
-        if(this.data.items[id]) {
-            this.data.items[id] = { ...this.data.items[id], ...payload, updated: Date.now() };
-            this.save();
-        }
-    },
-    deleteItem(id) { delete this.data.items[id]; this.save(); },
-    getItems(type) {
-        const all = Object.values(this.data.items).sort((a,b) => b.updated - a.updated);
-        return type === 'dashboard' ? all : all.filter(i => i.type === type);
-    },
-    updateCounts() {
-        const counts = { project: 0, area: 0, resource: 0, archive: 0 };
-        Object.values(this.data.items).forEach(i => { if(counts[i.type] !== undefined) counts[i.type]++; });
-        document.getElementById('c-proj').innerText = counts.project;
-        document.getElementById('c-area').innerText = counts.area;
-        document.getElementById('c-res').innerText = counts.resource;
-        document.getElementById('c-arch').innerText = counts.archive;
-    }
-};
+        // Ensure structure validity
+        if (!this.data.columns) this.reset();
+      },
 
-/* --- UI HELPERS --- */
-const UI = {
-    toggleSidebar(force) {
-        const sb = document.getElementById('sidebar');
-        const ov = document.getElementById('mob-overlay');
-        const isOpen = sb.classList.contains('open');
-        const action = force !== undefined ? force : !isOpen;
-        
-        if(action) {
-            sb.classList.add('open');
-            ov.classList.add('open');
-        } else {
-            sb.classList.remove('open');
-            ov.classList.remove('open');
-        }
-    }
-};
+      save() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+      },
 
-/* --- ROUTER --- */
-const Router = {
-    current: 'dashboard',
-    go(route) {
-        this.current = route;
-        
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        const activeNav = document.querySelector(`.nav-item[data-type="${route}"]`) 
-                       || document.querySelector(`.nav-item[onclick*="'${route}'"]`);
-        if(activeNav) activeNav.classList.add('active');
-
-        document.getElementById('view-grid').classList.add('active');
-        document.getElementById('view-editor').classList.remove('active');
-        document.getElementById('page-title').innerText = route.charAt(0).toUpperCase() + route.slice(1);
-
-        const grid = document.getElementById('card-grid');
-        grid.innerHTML = '';
-        const items = Store.getItems(route);
-        
-        if(items.length === 0) grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--overlay); padding:40px;">No items found.</div>`;
-
-        items.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            const colors = { project: 'var(--red)', area: 'var(--blue)', resource: 'var(--green)', archive: 'var(--subtext)' };
-            const bgColors = { project: 'rgba(243,139,168,0.1)', area: 'rgba(137,180,250,0.1)', resource: 'rgba(166,227,161,0.1)', archive: 'rgba(166,173,200,0.1)' };
-            
-            card.innerHTML = `
-                <div class="card-tag" style="color:${colors[item.type]}; background:${bgColors[item.type]}">${item.type}</div>
-                <div class="card-title">${item.title}</div>
-                <div class="card-meta">
-                    <svg viewBox="0 0 24 24"><polyline points="12 6 12 12 16 14"></polyline><circle cx="12" cy="12" r="10"></circle></svg>
-                    ${new Date(item.updated).toLocaleDateString()}
-                </div>
-            `;
-            card.onclick = () => Editor.open(item.id);
-            grid.appendChild(card);
-        });
-
-        document.getElementById('header-actions').innerHTML = `
-            <button class="btn btn-primary" onclick="App.create('${route === 'dashboard' ? 'project' : route}')">
-                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> New
-            </button>
-        `;
-        
-        UI.toggleSidebar(false);
-    }
-};
-
-const App = {
-    create(type) {
-        const id = Store.createItem('Untitled', type);
-        Editor.open(id);
-    },
-    exportData() {
-        const blob = new Blob([JSON.stringify(Store.data, null, 2)], {type:'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `zenith-backup-${Date.now()}.json`;
-        a.click();
-        Cmd.toggle();
-    },
-    importData() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.onchange = e => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = ev => {
-                if(confirm("Overwrite current data?")) {
-                    Store.data = JSON.parse(ev.target.result);
-                    Store.save();
-                    location.reload();
-                }
-            };
-            reader.readAsText(file);
+      reset() {
+        this.data = {
+          columns: [
+            {id: 'c1', title: 'To Do', cards: [{id: 't1', text: 'Welcome to Zenith', tag: 'tag-dev'}, {id: 't2', text: 'Drag me around!', tag: 'tag-high'}]},
+            {id: 'c2', title: 'In Progress', cards: []},
+            {id: 'c3', title: 'Done', cards: []}
+          ]
         };
-        input.click();
-    }
-};
+        this.save();
+      }
+    };
 
-/* --- MARKDOWN ENGINE (Fixed) --- */
-const Markdown = {
-    parse(text) {
-        let html = text
-            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-            .replace(/\*\*(.*?)\*\*/gim, '<b>$1</b>')
-            .replace(/`([^`]+)`/gim, '<code>$1</code>')
-            .replace(/^\- \[ \] (.*)/gim, '<div class="md-task"><input type="checkbox" disabled> $1</div>')
-            .replace(/^\- \[x\] (.*)/gim, '<div class="md-task done"><input type="checkbox" checked disabled> $1</div>')
-            .replace(/^\- (.*$)/gim, '<ul><li>$1</li></ul>')
-            .replace(/<\/ul>\s*<ul>/gim, '') // Merge lists
-            .replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
-            .replace(/\n/gim, '<br>');
-        return '<div class="md">' + html + '</div>';
-    }
-};
+    const UI = {
+      board: document.getElementById('board'),
+      modal: document.getElementById('cardModal'),
 
-/* --- EDITOR CONTROLLER --- */
-const Editor = {
-    activeId: null,
-    open(id) {
-        this.activeId = id;
-        const item = Store.data.items[id];
-        
-        document.getElementById('view-grid').classList.remove('active');
-        document.getElementById('view-editor').classList.add('active');
-        document.getElementById('page-title').innerText = 'Editing';
+      init() {
+        this.render();
+      },
 
-        document.getElementById('doc-title').value = item.title;
-        document.getElementById('doc-type').value = item.type;
-        document.getElementById('editor-in').value = item.content;
-        
-        // Render markdown immediately
-        document.getElementById('preview-out').innerHTML = Markdown.parse(item.content);
+      render() {
+        this.board.innerHTML = '';
+        State.data.columns.forEach(col => {
+          const colEl = document.createElement('div');
+          colEl.className = 'column';
+          colEl.dataset.id = col.id;
 
-        document.getElementById('header-actions').innerHTML = `
-            <button class="btn" onclick="Editor.togglePreview()">
-                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            </button>
-            <button class="btn" style="color:var(--red); border-color:var(--red)" onclick="Editor.delete()">
-                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
-            <button class="btn" onclick="Router.go(Router.current)">Done</button>
-        `;
-        
-        // Reset preview state
-        document.getElementById('preview-out').classList.remove('visible');
-        document.getElementById('editor-in').style.display = 'block';
-    },
-    saveMeta() {
-        if(!this.activeId) return;
-        Store.updateItem(this.activeId, { 
-            title: document.getElementById('doc-title').value, 
-            type: document.getElementById('doc-type').value 
-        });
-    },
-    saveContent() {
-        if(!this.activeId) return;
-        const content = document.getElementById('editor-in').value;
-        Store.updateItem(this.activeId, { content });
-        // Update Preview Realtime
-        document.getElementById('preview-out').innerHTML = Markdown.parse(content);
-    },
-    togglePreview() {
-        const p = document.getElementById('preview-out');
-        const e = document.getElementById('editor-in');
-        
-        if(p.classList.contains('visible')) {
-            p.classList.remove('visible');
-            e.style.display = 'block';
-        } else {
-            p.classList.add('visible');
-            if(window.innerWidth < 768) {
-                e.style.display = 'none';
+          // Header
+          colEl.innerHTML = `
+                <div class="col-header">
+                    ${col.title}
+                    <span class="col-count">${col.cards.length}</span>
+                </div>
+                <div class="col-body" id="list-${col.id}"></div>
+                <button class="add-card-btn" onclick="App.openAdd('${col.id}')">+ Add Card</button>
+            `;
+
+          const listEl = colEl.querySelector('.col-body');
+
+          // Render Cards
+          col.cards.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+            cardEl.dataset.id = card.id;
+            cardEl.onclick = () => App.openEdit(col.id, card.id);
+
+            // Tag HTML
+            let tagHtml = '';
+            if (card.tag) {
+              const labels = {'tag-high': 'High', 'tag-med': 'Medium', 'tag-low': 'Low', 'tag-dev': 'Dev'};
+              tagHtml = `<div class="card-tags"><span class="tag ${card.tag}">${labels[card.tag] || 'Tag'}</span></div>`;
             }
-        }
-    },
-    delete() {
-        if(confirm("Delete this item?")) {
-            Store.deleteItem(this.activeId);
-            Router.go(Router.current);
-        }
-    }
-};
 
-/* --- CMD --- */
-const Cmd = {
-    toggle() {
-        const overlay = document.getElementById('palette-overlay');
-        overlay.classList.toggle('open');
-        if(overlay.classList.contains('open')) {
-            document.getElementById('cmd-input').value = '';
-            document.getElementById('cmd-input').focus();
-            this.render();
-        }
-        UI.toggleSidebar(false);
-    },
-    render() {
-        const query = document.getElementById('cmd-input').value.toLowerCase();
-        const list = document.getElementById('cmd-results');
-        list.innerHTML = '';
-        const cmds = [
-            { txt: 'Create Project', action: () => App.create('project') },
-            { txt: 'Export Backup', action: () => App.exportData() },
-            { txt: 'Import Backup', action: () => App.importData() }
-        ];
-        cmds.forEach(cmd => {
-            if(query && !cmd.txt.toLowerCase().includes(query)) return;
-            const el = document.createElement('div');
-            el.className = 'cmd-item';
-            el.innerHTML = `<span>${cmd.txt}</span> <span class="cmd-key">↵</span>`;
-            el.onclick = () => { cmd.action(); this.toggle(); };
-            list.appendChild(el);
+            cardEl.innerHTML = `
+                    ${tagHtml}
+                    <div class="card-text">${this.escape(card.text)}</div>
+                `;
+            listEl.appendChild(cardEl);
+          });
+
+          // Init Sortable for this column
+          new Sortable(listEl, {
+            group: 'zenith', // Allow dragging between columns
+            animation: 150,
+            delay: 100, // Slight delay prevents accidental drags on touch scroll
+            delayOnTouchOnly: true,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            onEnd: (evt) => {
+              App.handleDrag(evt.from, evt.to, evt.oldIndex, evt.newIndex, evt.item.dataset.id);
+            }
+          });
+
+          this.board.appendChild(colEl);
         });
-    }
-};
+      },
 
-window.onload = () => {
-    Store.init(); Router.go('dashboard');
-    document.getElementById('editor-in').addEventListener('input', () => Editor.saveContent());
-    document.getElementById('doc-title').addEventListener('input', () => Editor.saveMeta());
-    document.getElementById('cmd-input').addEventListener('input', () => Cmd.render());
-};
-</script>
+      openModal(title, text = '', tag = '') {
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('cardText').value = text;
+        document.getElementById('cardTag').value = tag;
+        this.modal.classList.add('open');
+        setTimeout(() => document.getElementById('cardText').focus(), 100);
+      },
+
+      closeModal() {
+        this.modal.classList.remove('open');
+        State.editing = {colId: null, cardId: null};
+      },
+
+      escape(str) {
+        if (!str) return '';
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+    };
+
+    const App = {
+      init() {
+        State.load();
+        UI.init();
+      },
+
+      // Drag Logic
+      handleDrag(fromEl, toEl, oldIdx, newIdx, cardId) {
+        const fromColId = fromEl.closest('.column').dataset.id;
+        const toColId = toEl.closest('.column').dataset.id;
+
+        const fromCol = State.data.columns.find(c => c.id === fromColId);
+        const toCol = State.data.columns.find(c => c.id === toColId);
+
+        // Find and remove card
+        const card = fromCol.cards.splice(oldIdx, 1)[0];
+
+        // Insert into new pos
+        toCol.cards.splice(newIdx, 0, card);
+
+        State.save();
+        // Re-render only counts? For simplicity, we re-render board to update counts
+        // In a huge app we'd update DOM directly, but for <500 cards this is fine.
+        UI.render();
+      },
+
+      // CRUD
+      openAdd(colId) {
+        State.editing = {colId, cardId: null};
+        document.getElementById('btnDelete').style.display = 'none';
+        UI.openModal('Add New Card');
+      },
+
+      openEdit(colId, cardId) {
+        State.editing = {colId, cardId};
+        const col = State.data.columns.find(c => c.id === colId);
+        const card = col.cards.find(c => c.id === cardId);
+
+        document.getElementById('btnDelete').style.display = 'block';
+        UI.openModal('Edit Card', card.text, card.tag);
+      },
+
+      saveCard() {
+        const text = document.getElementById('cardText').value.trim();
+        const tag = document.getElementById('cardTag').value;
+        if (!text) return;
+
+        const {colId, cardId} = State.editing;
+        const col = State.data.columns.find(c => c.id === colId);
+
+        if (cardId) {
+          // Update
+          const card = col.cards.find(c => c.id === cardId);
+          card.text = text;
+          card.tag = tag;
+        } else {
+          // Create
+          col.cards.push({
+            id: 't' + Date.now(),
+            text: text,
+            tag: tag
+          });
+        }
+
+        State.save();
+        UI.closeModal();
+        UI.render();
+      },
+
+      deleteCard() {
+        if (!confirm('Delete this card?')) return;
+        const {colId, cardId} = State.editing;
+        const col = State.data.columns.find(c => c.id === colId);
+        col.cards = col.cards.filter(c => c.id !== cardId);
+
+        State.save();
+        UI.closeModal();
+        UI.render();
+      },
+
+      // Data Management
+      exportData() {
+        const str = JSON.stringify(State.data, null, 2);
+        const blob = new Blob([str], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `zenith_board_${Date.now()}.json`;
+        a.click();
+      },
+
+      importData(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const json = JSON.parse(e.target.result);
+            if (json.columns && Array.isArray(json.columns)) {
+              if (confirm('This will overwrite your current board. Continue?')) {
+                State.data = json;
+                State.save();
+                UI.render();
+              }
+            } else {
+              alert('Invalid file format');
+            }
+          } catch (err) {
+            alert('Error parsing JSON');
+          }
+        };
+        reader.readAsText(file);
+        input.value = ''; // Reset
+      },
+
+      clearData() {
+        if (confirm('Are you sure you want to wipe the board?')) {
+          State.reset();
+          UI.render();
+        }
+      }
+    };
+
+    // Start
+    App.init();
+
+  </script>
 </body>
+
 </html>
