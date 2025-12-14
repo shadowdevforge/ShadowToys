@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ShadeNotes</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Core Libraries -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+    <!-- Tailwind & Theme Config -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        // Catppuccin Mocha Palette
+                        ctp: {
+                            base: '#1e1e2e',
+                            mantle: '#181825',
+                            crust: '#11111b',
+                            text: '#cdd6f4',
+                            subtext0: '#a6adc8',
+                            subtext1: '#bac2de',
+                            surface0: '#313244',
+                            surface1: '#45475a',
+                            surface2: '#585b70',
+                            overlay0: '#6c7086',
+                            blue: '#89b4fa',
+                            lavender: '#b4befe',
+                            mauve: '#cba6f7',
+                            red: '#f38ba8',
+                            peach: '#fab387',
+                            green: '#a6e3a1',
+                            yellow: '#f9e2af',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.2s ease-out',
+                        'slide-in': 'slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideIn: {
+                            '0%': { transform: 'translateX(-100%)' },
+                            '100%': { transform: 'translateX(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #45475a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #585b70; }
+        
+        body { background-color: #1e1e2e; color: #cdd6f4; overflow: hidden; }
+        
+        /* Markdown Editor Styles */
+        .editor-area textarea {
+            resize: none;
+            outline: none;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            color: #cdd6f4;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.6;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(30, 30, 46, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(186, 194, 222, 0.1);
+        }
+        
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="app" v-cloak class="h-screen w-screen flex flex-col md:flex-row overflow-hidden text-ctp-text selection:bg-ctp-mauve selection:text-ctp-base">
+
+    <!-- Mobile Overlay for Sidebar -->
+    <div v-if="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black/50 z-20 md:hidden transition-opacity"></div>
+
+    <!-- Sidebar / Navigation -->
+    <aside :class="['fixed md:relative z-30 h-full w-[85%] md:w-80 bg-ctp-mantle border-r border-ctp-surface0 flex flex-col transition-transform duration-300 ease-spring', sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0']">
+        
+        <!-- Sidebar Header -->
+        <div class="p-6 pb-2">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-ctp-mauve to-ctp-blue flex items-center justify-center text-ctp-base shadow-lg shadow-ctp-mauve/20">
+                    <i class="ph-bold ph-notebook text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl tracking-tight">ShadeNotes</h1>
+                    <p class="text-xs text-ctp-overlay0 font-mono">v1.0.0 Local</p>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="relative group">
+                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-ctp-overlay0 group-focus-within:text-ctp-mauve transition-colors"></i>
+                <input v-model="searchQuery" type="text" placeholder="Search notes..." 
+                    class="w-full bg-ctp-surface0/50 border border-transparent focus:border-ctp-mauve/50 focus:bg-ctp-surface0 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-ctp-surface2">
+            </div>
+        </div>
+
+        <!-- Note List -->
+        <div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+            <div v-if="filteredNotes.length === 0" class="text-center mt-10 opacity-50">
+                <i class="ph ph-wind text-4xl mb-2"></i>
+                <p class="text-sm">No notes found</p>
+            </div>
+
+            <button v-for="note in sortedNotes" :key="note.id" @click="selectNote(note.id)"
+                :class="['w-full text-left p-3 rounded-xl transition-all duration-200 group border border-transparent', 
+                activeNoteId === note.id ? 'bg-ctp-surface0 border-ctp-surface1 shadow-sm' : 'hover:bg-ctp-surface0/50 hover:border-ctp-surface0/50']">
+                <h3 :class="['font-medium truncate', activeNoteId === note.id ? 'text-ctp-mauve' : 'text-ctp-text']">
+                    {{ note.title || 'Untitled Note' }}
+                </h3>
+                <div class="flex justify-between items-center mt-1">
+                    <span class="text-xs text-ctp-overlay0 font-mono">{{ formatDate(note.updatedAt) }}</span>
+                    <i v-if="activeNoteId === note.id" class="ph-bold ph-caret-right text-ctp-mauve text-xs animate-pulse"></i>
+                </div>
+            </button>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="p-4 border-t border-ctp-surface0 flex justify-between items-center bg-ctp-crust/30">
+            <button @click="showSettings = true" class="p-2 hover:bg-ctp-surface0 rounded-lg text-ctp-subtext0 hover:text-ctp-text transition-colors" title="Settings">
+                <i class="ph-bold ph-gear text-lg"></i>
+            </button>
+            <button @click="createNote" class="flex items-center gap-2 bg-ctp-mauve hover:bg-ctp-mauve/90 text-ctp-base px-4 py-2 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-ctp-mauve/20 active:scale-95">
+                <i class="ph-bold ph-plus"></i>
+                <span>New Note</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full relative bg-ctp-base">
+        
+        <!-- Mobile Header -->
+        <header class="glass h-16 flex items-center justify-between px-4 md:px-8 z-10 shrink-0">
+            <div class="flex items-center gap-3">
+                <button @click="sidebarOpen = !sidebarOpen" class="md:hidden p-2 -ml-2 text-ctp-subtext0 hover:text-ctp-text">
+                    <i class="ph-bold ph-list text-xl"></i>
+                </button>
+                <div v-if="activeNote" class="flex flex-col">
+                    <input v-model="activeNote.title" @input="saveNotes" type="text" 
+                        class="bg-transparent text-ctp-text font-bold text-lg outline-none placeholder:text-ctp-surface2 w-48 md:w-96 truncate" 
+                        placeholder="Untitled Note">
+                </div>
+                <div v-else class="text-ctp-overlay0 italic text-sm">Select a note...</div>
+            </div>
+
+            <div v-if="activeNote" class="flex items-center gap-2">
+                <!-- View Toggle -->
+                <div class="flex bg-ctp-surface0 rounded-lg p-1">
+                    <button @click="viewMode = 'edit'" :class="['px-3 py-1.5 rounded-md text-xs font-medium transition-all', viewMode === 'edit' ? 'bg-ctp-overlay0/20 text-ctp-text shadow-sm' : 'text-ctp-subtext0 hover:text-ctp-text']">
+                        Edit
+                    </button>
+                    <button @click="viewMode = 'preview'" :class="['px-3 py-1.5 rounded-md text-xs font-medium transition-all', viewMode === 'preview' ? 'bg-ctp-overlay0/20 text-ctp-text shadow-sm' : 'text-ctp-subtext0 hover:text-ctp-text']">
+                        View
+                    </button>
+                </div>
+                
+                <button @click="deleteNote(activeNote.id)" class="p-2 text-ctp-red hover:bg-ctp-red/10 rounded-lg transition-colors md:ml-2">
+                    <i class="ph-bold ph-trash"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Editor / Preview Area -->
+        <div class="flex-1 overflow-hidden relative">
+            
+            <!-- Empty State -->
+            <div v-if="!activeNote" class="absolute inset-0 flex flex-col items-center justify-center text-ctp-overlay0 p-6 text-center">
+                <div class="w-20 h-20 bg-ctp-surface0 rounded-full flex items-center justify-center mb-4">
+                    <i class="ph-duotone ph-pencil-slash text-3xl"></i>
+                </div>
+                <h2 class="text-xl font-bold text-ctp-text mb-2">No Note Selected</h2>
+                <p class="max-w-xs text-sm">Select a note from the sidebar or create a new one to get started.</p>
+                <button @click="createNote" class="mt-6 text-ctp-mauve hover:underline font-medium">Create a note</button>
+            </div>
+
+            <!-- Content -->
+            <div v-else class="h-full w-full relative">
+                
+                <!-- Edit Mode -->
+                <div v-show="viewMode === 'edit'" class="h-full w-full editor-area p-4 md:p-8 md:max-w-3xl md:mx-auto animate-fade-in">
+                    <textarea v-model="activeNote.content" @input="saveNotes" placeholder="Start typing your masterpiece..." spellcheck="false"></textarea>
+                </div>
+
+                <!-- Preview Mode -->
+                <div v-show="viewMode === 'preview'" class="h-full w-full overflow-y-auto p-4 md:p-8 animate-fade-in">
+                    <article class="prose prose-invert prose-p:text-ctp-subtext0 prose-headings:text-ctp-text prose-a:text-ctp-blue prose-strong:text-ctp-mauve prose-code:text-ctp-peach prose-pre:bg-ctp-mantle prose-blockquote:border-l-ctp-mauve max-w-3xl mx-auto pb-20"
+                        v-html="renderedContent">
+                    </article>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings/Import Modal -->
+    <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 scale-95" enter-to-class="opacity-100 scale-100" leave-active-class="transition duration-150 ease-in" leave-from-class="opacity-100 scale-100" leave-to-class="opacity-0 scale-95">
+        <div v-if="showSettings" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div @click="showSettings = false" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+            <div class="bg-ctp-mantle w-full max-w-md rounded-2xl border border-ctp-surface0 shadow-2xl relative z-10 overflow-hidden">
+                <div class="p-6 border-b border-ctp-surface0 flex justify-between items-center">
+                    <h2 class="text-lg font-bold">Data Management</h2>
+                    <button @click="showSettings = false" class="text-ctp-subtext0 hover:text-ctp-text"><i class="ph-bold ph-x"></i></button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <!-- Export -->
+                    <div class="bg-ctp-surface0/30 p-4 rounded-xl border border-ctp-surface0">
+                        <div class="flex items-center gap-3 mb-3">
+                            <i class="ph-duotone ph-export text-2xl text-ctp-green"></i>
+                            <div>
+                                <h3 class="font-bold text-sm">Export Data</h3>
+                                <p class="text-xs text-ctp-subtext0">Download all notes as JSON.</p>
+                            </div>
+                        </div>
+                        <button @click="exportData" class="w-full py-2 bg-ctp-surface0 hover:bg-ctp-surface1 rounded-lg text-sm font-medium transition-colors">
+                            Download Backup
+                        </button>
+                    </div>
+
+                    <!-- Import -->
+                    <div class="bg-ctp-surface0/30 p-4 rounded-xl border border-ctp-surface0">
+                        <div class="flex items-center gap-3 mb-3">
+                            <i class="ph-duotone ph-download-simple text-2xl text-ctp-blue"></i>
+                            <div>
+                                <h3 class="font-bold text-sm">Import Data</h3>
+                                <p class="text-xs text-ctp-subtext0">Restore from a ShadeNotes JSON file.</p>
+                            </div>
+                        </div>
+                        <label class="block w-full cursor-pointer">
+                            <span class="sr-only">Choose file</span>
+                            <input type="file" @change="importData" accept=".json" class="block w-full text-sm text-ctp-subtext0
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-lg file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-ctp-blue file:text-ctp-base
+                                hover:file:bg-ctp-blue/80
+                            "/>
+                        </label>
+                        <p v-if="importMsg" :class="['text-xs mt-2', importStatus === 'error' ? 'text-ctp-red' : 'text-ctp-green']">{{ importMsg }}</p>
+                    </div>
+                </div>
+                <div class="p-4 bg-ctp-crust/50 text-center text-xs text-ctp-overlay0">
+                    ShadeNotes is strictly local. Clear your browser cache to wipe data.
+                </div>
+            </div>
+        </div>
+    </Transition>
+
+</div>
+
+<script>
+    const { createApp, ref, computed, watch, onMounted } = Vue;
+
+    createApp({
+        setup() {
+            // State
+            const notes = ref([]);
+            const activeNoteId = ref(null);
+            const searchQuery = ref('');
+            const viewMode = ref('edit'); // 'edit' | 'preview'
+            const sidebarOpen = ref(false);
+            const showSettings = ref(false);
+            const importMsg = ref('');
+            const importStatus = ref('');
+
+            // Computed
+            const activeNote = computed(() => {
+                return notes.value.find(n => n.id === activeNoteId.value);
+            });
+
+            const filteredNotes = computed(() => {
+                if (!searchQuery.value) return notes.value;
+                const q = searchQuery.value.toLowerCase();
+                return notes.value.filter(n => 
+                    n.title.toLowerCase().includes(q) || 
+                    n.content.toLowerCase().includes(q)
+                );
+            });
+
+            const sortedNotes = computed(() => {
+                return [...filteredNotes.value].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+            });
+
+            const renderedContent = computed(() => {
+                if (!activeNote.value) return '';
+                // Configure Marked
+                const html = marked.parse(activeNote.value.content || '');
+                return DOMPurify.sanitize(html);
+            });
+
+            // Methods
+            const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+
+            const createNote = () => {
+                const newNote = {
+                    id: generateId(),
+                    title: '',
+                    content: '',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                notes.value.unshift(newNote);
+                activeNoteId.value = newNote.id;
+                viewMode.value = 'edit';
+                if (window.innerWidth < 768) sidebarOpen.value = false;
+                saveNotes();
+            };
+
+            const deleteNote = (id) => {
+                if (confirm('Are you sure you want to delete this note?')) {
+                    notes.value = notes.value.filter(n => n.id !== id);
+                    if (activeNoteId.value === id) activeNoteId.value = null;
+                    saveNotes();
+                }
+            };
+
+            const selectNote = (id) => {
+                activeNoteId.value = id;
+                if (window.innerWidth < 768) sidebarOpen.value = false;
+            };
+
+            const saveNotes = () => {
+                if (activeNote.value) {
+                    activeNote.value.updatedAt = new Date().toISOString();
+                }
+                localStorage.setItem('shadeNotes_data', JSON.stringify(notes.value));
+            };
+
+            const loadNotes = () => {
+                const saved = localStorage.getItem('shadeNotes_data');
+                if (saved) {
+                    try {
+                        notes.value = JSON.parse(saved);
+                    } catch (e) {
+                        console.error('Failed to load notes', e);
+                    }
+                }
+            };
+
+            const formatDate = (isoString) => {
+                const date = new Date(isoString);
+                return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date);
+            };
+
+            // Export / Import
+            const exportData = () => {
+                const dataStr = JSON.stringify(notes.value, null, 2);
+                const blob = new Blob([dataStr], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `shadenotes_backup_${new Date().toISOString().slice(0,10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+
+            const importData = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const imported = JSON.parse(e.target.result);
+                        if (Array.isArray(imported)) {
+                            // Merge strategy: Add imported notes to current list
+                            // Alternatively, could replace all. Let's merge unique IDs.
+                            const existingIds = new Set(notes.value.map(n => n.id));
+                            let count = 0;
+                            
+                            imported.forEach(note => {
+                                if (note.id && note.content !== undefined && !existingIds.has(note.id)) {
+                                    notes.value.push(note);
+                                    count++;
+                                }
+                            });
+                            
+                            saveNotes();
+                            importStatus.value = 'success';
+                            importMsg.value = `Successfully imported ${count} notes.`;
+                        } else {
+                            throw new Error('Invalid format');
+                        }
+                    } catch (err) {
+                        importStatus.value = 'error';
+                        importMsg.value = 'Failed to parse JSON file.';
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            // Lifecycle
+            onMounted(() => {
+                loadNotes();
+                // If no notes exist, create a welcome note
+                if (notes.value.length === 0) {
+                    const welcomeNote = {
+                        id: generateId(),
+                        title: 'Welcome to ShadeNotes',
+                        content: '# Welcome to ShadeNotes 🌑\n\nA beautiful, mobile-first Markdown editor that lives in your browser.\n\n## Features\n- **Privacy Focused**: Data lives in your LocalStorage.\n- **Catppuccin Theme**: Easy on the eyes.\n- **Import/Export**: Keep your data safe.\n\nTry typing some markdown here!',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    notes.value.push(welcomeNote);
+                    activeNoteId.value = welcomeNote.id;
+                    saveNotes();
+                }
+            });
+
+            return {
+                notes,
+                activeNoteId,
+                activeNote,
+                filteredNotes,
+                sortedNotes,
+                searchQuery,
+                viewMode,
+                sidebarOpen,
+                renderedContent,
+                showSettings,
+                createNote,
+                deleteNote,
+                selectNote,
+                saveNotes,
+                formatDate,
+                exportData,
+                importData,
+                importMsg,
+                importStatus
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
