@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GourmetCompass Open</title>
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- Vue 3 & Tailwind -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace']},
+          colors: {
+            ctp: {
+              base: '#1e1e2e', mantle: '#181825', crust: '#11111b',
+              text: '#cdd6f4', subtext0: '#a6adc8', overlay0: '#6c7086',
+              surface0: '#313244', surface1: '#45475a',
+              blue: '#89b4fa', red: '#f38ba8', green: '#a6e3a1',
+              yellow: '#f9e2af', peach: '#fab387', mauve: '#cba6f7',
+              lavender: '#b4befe', sapphire: '#74c7ec'
+            }
+          },
+          animation: {
+            'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #1e1e2e;
+      color: #cdd6f4;
+      overflow-x: hidden;
+    }
+
+    .glass {
+      background: rgba(30, 30, 46, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #313244;
+    }
+
+    .card-anim {
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .card-anim:active {
+      transform: scale(0.98);
+    }
+
+    /* Custom Loader */
+    .compass-loader {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 4px solid #313244;
+      border-top-color: #cba6f7;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    [v-cloak] {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app" v-cloak class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="glass fixed top-0 w-full z-50 px-6 h-16 flex items-center justify-between shadow-lg shadow-black/20">
+      <div class="flex items-center gap-3" @click="resetApp">
+        <div
+          class="w-9 h-9 rounded-xl bg-gradient-to-br from-ctp-mauve to-ctp-blue text-ctp-base flex items-center justify-center shadow-lg shadow-ctp-mauve/20 cursor-pointer">
+          <i class="ph-bold ph-compass text-xl"></i>
+        </div>
+        <h1 class="font-bold text-lg tracking-tight cursor-pointer">GourmetCompass <span
+            class="text-ctp-green text-xs bg-ctp-surface0 px-2 py-0.5 rounded-full ml-1">OPEN</span></h1>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 pt-24 pb-12 px-4 md:px-8 max-w-6xl mx-auto w-full flex flex-col">
+
+      <!-- Search Area -->
+      <div class="w-full max-w-xl mx-auto mb-10 transition-all duration-500"
+        :class="{'translate-y-[20vh]': !hasSearched}">
+
+        <div class="text-center mb-8" v-if="!hasSearched">
+          <h2 class="text-3xl md:text-4xl font-extrabold text-ctp-text mb-3">Find Local Eats</h2>
+          <p class="text-ctp-subtext0">Enter an Indian PIN Code or use GPS.</p>
+        </div>
+
+        <div
+          class="bg-ctp-mantle border border-ctp-surface0 p-2 rounded-2xl shadow-2xl flex flex-col md:flex-row gap-2">
+          <div class="relative flex-1">
+            <i class="ph-bold ph-map-pin absolute left-4 top-1/2 -translate-y-1/2 text-ctp-overlay0 text-lg"></i>
+            <input type="number" v-model="pincode" @keyup.enter="searchByPin" placeholder="Ex: 110001 (New Delhi)"
+              class="w-full bg-ctp-base/50 h-12 pl-12 pr-4 rounded-xl text-ctp-text placeholder:text-ctp-surface2 focus:outline-none focus:ring-2 focus:ring-ctp-mauve transition-all font-mono font-bold">
+          </div>
+
+          <div class="flex gap-2">
+            <button @click="searchByPin" :disabled="loading || pincode.length < 6"
+              class="flex-1 md:flex-none bg-ctp-mauve hover:bg-ctp-lavender disabled:opacity-50 disabled:cursor-not-allowed text-ctp-base font-bold px-6 h-12 rounded-xl transition-all shadow-lg shadow-ctp-mauve/20 flex items-center justify-center gap-2">
+              <span>Search</span>
+              <i class="ph-bold ph-magnifying-glass"></i>
+            </button>
+
+            <button @click="searchByGPS" :disabled="loading" title="Use GPS"
+              class="w-12 h-12 rounded-xl bg-ctp-surface0 hover:bg-ctp-surface1 text-ctp-blue flex items-center justify-center transition-all border border-ctp-surface1">
+              <i class="ph-bold ph-crosshair text-xl"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div v-if="error"
+          class="mt-4 p-3 rounded-xl bg-ctp-red/10 border border-ctp-red/20 text-ctp-red text-sm font-medium flex items-center gap-2 animate-pulse">
+          <i class="ph-bold ph-warning"></i> {{ error }}
+        </div>
+      </div>
+
+      <!-- Loader -->
+      <div v-if="loading" class="flex flex-col items-center justify-center py-12">
+        <div class="compass-loader mb-4"></div>
+        <p class="text-ctp-subtext0 font-mono text-sm animate-pulse">{{ statusMsg }}</p>
+      </div>
+
+      <!-- Results Interface -->
+      <div v-if="hasSearched && !loading && !error" class="flex-1 flex flex-col">
+
+        <!-- Filters -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 animate-fade-in">
+          <div class="flex items-center gap-2 text-sm text-ctp-subtext0">
+            <i class="ph-fill ph-map-trifold text-ctp-mauve"></i>
+            <span>Found <strong>{{ filteredRestaurants.length }}</strong> spots near</span>
+            <span class="font-mono text-ctp-text bg-ctp-surface0 px-2 rounded">{{ displayLocation }}</span>
+          </div>
+
+          <div class="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+            <!-- Distance Filter -->
+            <select v-model="filters.radius"
+              class="bg-ctp-surface0 border border-ctp-surface1 text-ctp-text text-sm rounded-lg px-3 py-2 outline-none focus:border-ctp-mauve">
+              <option :value="1000">1 km</option>
+              <option :value="3000">3 km</option>
+              <option :value="5000">5 km</option>
+            </select>
+
+            <!-- Type Filter (Derived from data) -->
+            <select v-model="filters.cuisine"
+              class="bg-ctp-surface0 border border-ctp-surface1 text-ctp-text text-sm rounded-lg px-3 py-2 outline-none focus:border-ctp-mauve">
+              <option value="all">All Cuisines</option>
+              <option v-for="c in availableCuisines" :key="c" :value="c">{{ c }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-for="place in filteredRestaurants" :key="place.id"
+            class="bg-ctp-mantle border border-ctp-surface0 rounded-2xl p-5 card-anim hover:border-ctp-mauve hover:shadow-xl hover:shadow-black/20 group relative overflow-hidden flex flex-col h-full">
+
+            <div class="flex justify-between items-start mb-2">
+              <div class="bg-ctp-surface0 p-2 rounded-lg text-ctp-peach">
+                <i class="ph-duotone ph-fork-knife text-xl"></i>
+              </div>
+              <span v-if="place.cuisine"
+                class="text-[10px] font-bold uppercase tracking-wider bg-ctp-surface0 text-ctp-subtext0 px-2 py-1 rounded-md border border-ctp-surface1">
+                {{ place.cuisine }}
+              </span>
+            </div>
+
+            <h3 class="font-bold text-lg text-ctp-text mb-1 leading-tight group-hover:text-ctp-mauve transition-colors">
+              {{ place.name || 'Unnamed Spot' }}
+            </h3>
+
+            <p class="text-xs text-ctp-overlay0 mb-4 flex-1 line-clamp-2">
+              {{ place.address || 'Address not available via OpenStreetMap' }}
+            </p>
+
+            <div class="mt-auto pt-4 border-t border-ctp-surface0 flex items-center justify-between">
+              <span class="text-xs font-mono text-ctp-green flex items-center gap-1">
+                <i class="ph-bold ph-navigation-arrow"></i> {{ formatDistance(place.distance) }}
+              </span>
+
+              <a :href="`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`" target="_blank"
+                class="bg-ctp-blue hover:bg-ctp-sapphire text-ctp-base text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+                Navigate <i class="ph-bold ph-arrow-up-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-if="filteredRestaurants.length === 0"
+          class="text-center py-12 border-2 border-dashed border-ctp-surface0 rounded-2xl">
+          <i class="ph-duotone ph-cactus text-4xl text-ctp-overlay0 mb-2"></i>
+          <p class="text-ctp-subtext0">No restaurants found with current filters.</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const {createApp, ref, computed, watch} = Vue;
+
+    createApp({
+      setup() {
+        // --- STATE ---
+        const pincode = ref('');
+        const loading = ref(false);
+        const statusMsg = ref('');
+        const error = ref('');
+        const hasSearched = ref(false);
+
+        const rawData = ref([]);
+        const userCoords = ref({lat: 0, lon: 0});
+        const displayLocation = ref('');
+
+        const filters = ref({
+          radius: 3000, // Default 3km
+          cuisine: 'all'
+        });
+
+        // --- COMPUTED ---
+        const availableCuisines = computed(() => {
+          const cuisines = new Set();
+          rawData.value.forEach(r => {
+            if (r.tags.cuisine) {
+              // Split comma separated cuisines like "indian,chinese"
+              r.tags.cuisine.split(';').forEach(c => cuisines.add(c.trim().replace('_', ' ')));
+            }
+          });
+          return Array.from(cuisines).sort();
+        });
+
+        const filteredRestaurants = computed(() => {
+          return rawData.value.filter(r => {
+            // Distance Filter
+            if (r.distance > filters.value.radius) return false;
+
+            // Cuisine Filter
+            if (filters.value.cuisine !== 'all') {
+              if (!r.tags.cuisine) return false;
+              if (!r.tags.cuisine.includes(filters.value.cuisine)) return false;
+            }
+            return true;
+          }).sort((a, b) => a.distance - b.distance); // Sort by nearest
+        });
+
+        // --- ACTIONS ---
+
+        const resetApp = () => {
+          hasSearched.value = false;
+          rawData.value = [];
+          pincode.value = '';
+          error.value = '';
+        };
+
+        const searchByPin = async () => {
+          if (!pincode.value || pincode.value.length < 6) {
+            error.value = "Please enter a valid 6-digit PIN code.";
+            return;
+          }
+
+          loading.value = true;
+          error.value = '';
+          statusMsg.value = `Triangulating PIN: ${pincode.value}...`;
+
+          try {
+            // 1. Nominatim API (Free, requires User-Agent)
+            const url = `https://nominatim.openstreetmap.org/search?postalcode=${pincode.value}&country=India&format=json&limit=1`;
+            const res = await fetch(url, {headers: {'User-Agent': 'GourmetCompass/1.0'}});
+            const data = await res.json();
+
+            if (!data || data.length === 0) throw new Error("PIN Code not found in OpenStreetMap database.");
+
+            const {lat, lon, display_name} = data[0];
+            userCoords.value = {lat: parseFloat(lat), lon: parseFloat(lon)};
+            displayLocation.value = pincode.value; // Short display
+
+            await fetchOverpass(lat, lon);
+
+          } catch (e) {
+            error.value = e.message;
+            loading.value = false;
+          }
+        };
+
+        const searchByGPS = () => {
+          if (!navigator.geolocation) {
+            error.value = "Geolocation not supported by browser.";
+            return;
+          }
+
+          loading.value = true;
+          error.value = '';
+          statusMsg.value = "Acquiring Satellite Lock...";
+
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              const {latitude, longitude} = pos.coords;
+              userCoords.value = {lat: latitude, lon: longitude};
+              displayLocation.value = "Current Location";
+              await fetchOverpass(latitude, longitude);
+            },
+            (err) => {
+              loading.value = false;
+              error.value = "GPS Access Denied. Please enable location services.";
+            }
+          );
+        };
+
+        // 2. Overpass API (The "Clever Hack" for free places data)
+        const fetchOverpass = async (lat, lon) => {
+          statusMsg.value = "Scanning local grid for sustenance...";
+
+          // Query: Nodes with amenity=restaurant/cafe/fast_food within 5000m
+          const query = `
+                    [out:json][timeout:25];
+                    (
+                      node["amenity"~"restaurant|cafe|fast_food"](around:5000,${lat},${lon});
+                    );
+                    out body;
+                `;
+
+          try {
+            const res = await fetch('https://overpass-api.de/api/interpreter', {
+              method: 'POST',
+              body: query
+            });
+            const data = await res.json();
+
+            // Process Data
+            rawData.value = data.elements.map(el => {
+              return {
+                id: el.id,
+                lat: el.lat,
+                lon: el.lon,
+                name: el.tags.name, // Many OSM nodes lack names, handled in template
+                tags: el.tags,
+                distance: getDistanceFromLatLonInM(lat, lon, el.lat, el.lon),
+                address: formatAddress(el.tags)
+              };
+            }).filter(item => item.name); // Filter out unnamed nodes to keep quality high
+
+            hasSearched.value = true;
+            loading.value = false;
+
+          } catch (e) {
+            error.value = "Overpass API is busy. Try again in 10s.";
+            loading.value = false;
+          }
+        };
+
+        // --- UTILS ---
+
+        // Haversine Formula for client-side distance calc
+        function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
+          const R = 6371e3; // metres
+          const φ1 = lat1 * Math.PI / 180;
+          const φ2 = lat2 * Math.PI / 180;
+          const Δφ = (lat2 - lat1) * Math.PI / 180;
+          const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+          const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+          return R * c;
+        }
+
+        function formatDistance(meters) {
+          if (meters < 1000) return Math.round(meters) + ' m';
+          return (meters / 1000).toFixed(1) + ' km';
+        }
+
+        function formatAddress(tags) {
+          // Try to construct a decent address from OSM tags
+          const parts = [];
+          if (tags['addr:housenumber']) parts.push(tags['addr:housenumber']);
+          if (tags['addr:street']) parts.push(tags['addr:street']);
+          if (tags['addr:suburb']) parts.push(tags['addr:suburb']);
+          if (tags['addr:city']) parts.push(tags['addr:city']);
+          return parts.join(', ');
+        }
+
+        // Watch filters to reset sorting/view logic if needed
+        watch(() => filters.value.radius, () => {
+          // Trigger re-sort/filter implicitly via computed
+        });
+
+        return {
+          pincode, loading, statusMsg, error, hasSearched,
+          displayLocation, filters, availableCuisines, filteredRestaurants,
+          searchByPin, searchByGPS, formatDistance, resetApp
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+
+</html>

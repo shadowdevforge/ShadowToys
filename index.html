@@ -1,385 +1,472 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A collection of self-contained HTML toys built for fun.">
-    <title>ShadowToys</title>
-    <style>
-        /* --- THEME: CATPPUCCIN MACCHIATO --- */
-        :root {
-            --base: #24273a;
-            --mantle: #1e2030;
-            --crust: #181926;
-            
-            --text: #cad3f5;
-            --subtext: #a5adcb;
-            --overlay: #939ab7;
-            
-            --surface0: #363a4f;
-            --surface1: #494d64;
-            --surface2: #5b6078;
-            
-            --ctp-blue: #8aadf4;
-            --ctp-mauve: #c6a0f6;
-            --ctp-red: #ed8796;
-            --ctp-peach: #f5a97f;
-            --ctp-green: #a6da95;
-            --ctp-lavender: #b7bdf8;
-            --ctp-pink: #f5c2e7;
-            --ctp-yellow: #eed49f;
-            --ctp-teal: #8bd5ca;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A collection of self-contained HTML toys built for fun.">
+  <title>ShadowToys</title>
+  <style>
+    /* --- THEME: CATPPUCCIN MACCHIATO --- */
+    :root {
+      --base: #24273a;
+      --mantle: #1e2030;
+      --crust: #181926;
 
-            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            --font-mono: "JetBrains Mono", monospace;
-            
-            --ease: cubic-bezier(0.23, 1, 0.32, 1);
-            --shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-        }
+      --text: #cad3f5;
+      --subtext: #a5adcb;
+      --overlay: #939ab7;
 
-        * { box-sizing: border-box; transition: all 0.2s var(--ease); }
-        
-        body { 
-            background-color: var(--base); 
-            color: var(--text); 
-            font-family: var(--font-main); 
-            margin: 0; padding: 0; 
-            min-height: 100vh; 
-            display: flex; flex-direction: column;
-        }
+      --surface0: #363a4f;
+      --surface1: #494d64;
+      --surface2: #5b6078;
 
-        /* --- HEADER --- */
-        header {
-            padding: 60px 20px 40px;
-            text-align: center;
-            background: linear-gradient(to bottom, var(--mantle), transparent);
-            border-bottom: 1px solid transparent;
-        }
-        
-        .brand-container {
-            display: inline-block;
-            position: relative;
-        }
-        
-        h1 { 
-            margin: 0; 
-            font-size: 3rem; 
-            font-weight: 900; 
-            letter-spacing: -2px; 
-            background: linear-gradient(135deg, var(--ctp-mauve), var(--ctp-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 10px 30px rgba(198, 160, 246, 0.2);
-        }
+      --ctp-blue: #8aadf4;
+      --ctp-mauve: #c6a0f6;
+      --ctp-red: #ed8796;
+      --ctp-peach: #f5a97f;
+      --ctp-green: #a6da95;
+      --ctp-lavender: #b7bdf8;
+      --ctp-pink: #f5c2e7;
+      --ctp-yellow: #eed49f;
+      --ctp-teal: #8bd5ca;
 
-        .tagline { 
-            color: var(--subtext); 
-            margin-top: 15px; 
-            font-size: 1.1rem; 
-            max-width: 600px; 
-            margin-left: auto; 
-            margin-right: auto; 
-            line-height: 1.6;
-        }
+      --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: "JetBrains Mono", monospace;
 
-        /* --- CONTROLS --- */
-        .controls {
-            display: flex; justify-content: center; gap: 15px; padding: 0 20px;
-            margin-bottom: 40px; flex-wrap: wrap; position: sticky; top: 20px; z-index: 100;
-        }
-        
-        .search-wrapper {
-            position: relative;
-        }
-        
-        input {
-            background: rgba(30, 32, 48, 0.8); 
-            backdrop-filter: blur(10px);
-            border: 2px solid var(--surface1);
-            padding: 12px 20px 12px 45px; 
-            border-radius: 50px; 
-            color: var(--text);
-            font-size: 1rem; 
-            width: 320px; 
-            outline: none;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        input:focus { 
-            border-color: var(--ctp-mauve); 
-            box-shadow: 0 0 0 4px rgba(198, 160, 246, 0.15); 
-            transform: scale(1.02);
-        }
-        
-        .search-icon {
-            position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
-            color: var(--overlay); pointer-events: none;
-        }
+      --ease: cubic-bezier(0.23, 1, 0.32, 1);
+      --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
 
-        .filter-group { 
-            display: flex; gap: 8px; 
-            background: rgba(30, 32, 48, 0.8); 
-            backdrop-filter: blur(10px);
-            padding: 6px; 
-            border-radius: 50px; 
-            border: 1px solid var(--surface1);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        
-        .filter-btn {
-            background: transparent; border: none; color: var(--subtext);
-            padding: 8px 16px; border-radius: 40px; cursor: pointer; font-weight: 600;
-            font-size: 0.9rem;
-        }
-        .filter-btn:hover { color: var(--text); background: var(--surface0); }
-        .filter-btn.active { background: var(--surface2); color: var(--text); }
+    * {
+      box-sizing: border-box;
+      transition: all 0.2s var(--ease);
+    }
 
-        /* --- GRID --- */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 24px; padding: 20px; max-width: 1400px; margin: 0 auto; width: 100%;
-        }
+    body {
+      background-color: var(--base);
+      color: var(--text);
+      font-family: var(--font-main);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-        /* --- CARD --- */
-        .card {
-            background: var(--mantle); 
-            border: 1px solid var(--surface0);
-            border-radius: 20px; 
-            padding: 28px; 
-            cursor: pointer;
-            position: relative; 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column;
-            text-decoration: none; 
-            height: 240px;
-            box-shadow: var(--shadow);
-        }
-        
-        .card:hover { 
-            transform: translateY(-8px) scale(1.01); 
-            border-color: var(--surface1);
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
-        }
-        
-        /* Dynamic Glow */
-        .card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px;
-            background: var(--card-color);
-            opacity: 0.8;
-        }
-        
-        .card::after {
-            content: ''; position: absolute; top: -50px; right: -50px;
-            width: 100px; height: 100px;
-            background: var(--card-color);
-            filter: blur(60px); opacity: 0; transition: opacity 0.3s;
-            pointer-events: none;
-        }
-        .card:hover::after { opacity: 0.15; }
+    /* --- HEADER --- */
+    header {
+      padding: 60px 20px 40px;
+      text-align: center;
+      background: linear-gradient(to bottom, var(--mantle), transparent);
+      border-bottom: 1px solid transparent;
+    }
 
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-        .card-title { font-size: 1.4rem; font-weight: 800; color: var(--text); margin: 0; letter-spacing: -0.5px; }
-        
-        .card-badge { 
-            font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; 
-            font-weight: 800; padding: 6px 10px; border-radius: 8px;
-            background: var(--surface0); color: var(--card-color);
-        }
+    .brand-container {
+      display: inline-block;
+      position: relative;
+    }
 
-        .card-desc { 
-            color: var(--subtext); 
-            line-height: 1.6; 
-            font-size: 0.95rem; 
-            flex: 1; 
-            opacity: 0.9;
-        }
+    h1 {
+      margin: 0;
+      font-size: 3rem;
+      font-weight: 900;
+      letter-spacing: -2px;
+      background: linear-gradient(135deg, var(--ctp-mauve), var(--ctp-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 10px 30px rgba(198, 160, 246, 0.2);
+    }
 
-        .card-footer { 
-            margin-top: auto; 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding-top: 20px;
-            border-top: 1px solid var(--surface0);
-        }
-        
-        .card-path { 
-            font-family: var(--font-mono); 
-            color: var(--overlay); 
-            font-size: 0.75rem; 
-            background: var(--crust);
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-        
-        .card-action {
-            color: var(--card-color);
-            font-weight: 700;
-            font-size: 0.9rem;
-            display: flex; align-items: center; gap: 5px;
-            opacity: 0.8;
-        }
-        .card:hover .card-action { opacity: 1; }
+    .tagline {
+      color: var(--subtext);
+      margin-top: 15px;
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
 
-        /* --- FOOTER --- */
-        footer {
-            margin-top: auto;
-            padding: 60px 20px;
-            text-align: center;
-            color: var(--overlay);
-            font-size: 0.9rem;
-            border-top: 1px solid var(--surface0);
-            background: var(--crust);
-        }
-        
-        .warning {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: rgba(237, 135, 150, 0.1);
-            color: var(--ctp-red);
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
+    /* --- CONTROLS --- */
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      padding: 0 20px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 20px;
+      z-index: 100;
+    }
 
-        .empty { text-align: center; color: var(--overlay); grid-column: 1/-1; padding: 50px; font-style: italic; }
+    .search-wrapper {
+      position: relative;
+    }
 
-    </style>
+    input {
+      background: rgba(30, 32, 48, 0.8);
+      backdrop-filter: blur(10px);
+      border: 2px solid var(--surface1);
+      padding: 12px 20px 12px 45px;
+      border-radius: 50px;
+      color: var(--text);
+      font-size: 1rem;
+      width: 320px;
+      outline: none;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    input:focus {
+      border-color: var(--ctp-mauve);
+      box-shadow: 0 0 0 4px rgba(198, 160, 246, 0.15);
+      transform: scale(1.02);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--overlay);
+      pointer-events: none;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      background: rgba(30, 32, 48, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 6px;
+      border-radius: 50px;
+      border: 1px solid var(--surface1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: none;
+      color: var(--subtext);
+      padding: 8px 16px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .filter-btn:hover {
+      color: var(--text);
+      background: var(--surface0);
+    }
+
+    .filter-btn.active {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    /* --- GRID --- */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 24px;
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* --- CARD --- */
+    .card {
+      background: var(--mantle);
+      border: 1px solid var(--surface0);
+      border-radius: 20px;
+      padding: 28px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      height: 240px;
+      box-shadow: var(--shadow);
+    }
+
+    .card:hover {
+      transform: translateY(-8px) scale(1.01);
+      border-color: var(--surface1);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Dynamic Glow */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: var(--card-color);
+      opacity: 0.8;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 100px;
+      height: 100px;
+      background: var(--card-color);
+      filter: blur(60px);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .card:hover::after {
+      opacity: 0.15;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text);
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+
+    .card-badge {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 800;
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: var(--surface0);
+      color: var(--card-color);
+    }
+
+    .card-desc {
+      color: var(--subtext);
+      line-height: 1.6;
+      font-size: 0.95rem;
+      flex: 1;
+      opacity: 0.9;
+    }
+
+    .card-footer {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 20px;
+      border-top: 1px solid var(--surface0);
+    }
+
+    .card-path {
+      font-family: var(--font-mono);
+      color: var(--overlay);
+      font-size: 0.75rem;
+      background: var(--crust);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .card-action {
+      color: var(--card-color);
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      opacity: 0.8;
+    }
+
+    .card:hover .card-action {
+      opacity: 1;
+    }
+
+    /* --- FOOTER --- */
+    footer {
+      margin-top: auto;
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--overlay);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--surface0);
+      background: var(--crust);
+    }
+
+    .warning {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: rgba(237, 135, 150, 0.1);
+      color: var(--ctp-red);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--overlay);
+      grid-column: 1/-1;
+      padding: 50px;
+      font-style: italic;
+    }
+  </style>
 </head>
+
 <body>
 
-    <header>
-        <div class="brand-container">
-            <h1>ShadowToys</h1>
-        </div>
-        <p class="tagline">A collection of self-contained HTML experiments. No build process. No dependencies. Just fun.</p>
-    </header>
-
-    <div class="controls">
-        <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="search" placeholder="Search the collection...">
-        </div>
-        <div class="filter-group">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="Productivity">Productivity</button>
-            <button class="filter-btn" data-filter="Tool">Tools</button>
-            <button class="filter-btn" data-filter="Game">Games</button>
-        </div>
+  <header>
+    <div class="brand-container">
+      <h1>ShadowToys</h1>
     </div>
+    <p class="tagline">A collection of self-contained HTML experiments. No build process. No dependencies. Just fun.</p>
+  </header>
 
-    <div class="grid" id="app-grid">
-        <!-- Injected via JS -->
+  <div class="controls">
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search" placeholder="Search the collection...">
     </div>
+    <div class="filter-group">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="Productivity">Productivity</button>
+      <button class="filter-btn" data-filter="Tool">Tools</button>
+      <button class="filter-btn" data-filter="Game">Games</button>
+    </div>
+  </div>
 
-    <footer>
-        <div>MIT License &bull; Use at your own risk</div>
-        <div class="warning">⚠️ Experiments: Expect bugs, quirks, and sudden rewrites.</div>
-        <div style="margin-top: 20px; opacity: 0.5; font-family: var(--font-mono); font-size: 0.7rem;">
-            TOYS FORGED
-        </div>
-    </footer>
+  <div class="grid" id="app-grid">
+    <!-- Injected via JS -->
+  </div>
 
-    <script>
-        // --- SHADOWTOYS REGISTRY ---
-        const apps = [
-          {
-            "name": "Zenith // Flow",
-            "desc": "A personal Kanban board with drag-and-drop, tagging, and mobile-optimized horizontal scrolling.",
-            "path": "toys/Zenith.html",
-            "color": "var(--ctp-peach)",
-            "category": "Productivity"
-          },
-          {
-            "name": "ShadeNotes",
-            "desc": "A sleek, mobile-first Markdown editor built with Vue.js. All your notes, saved locally.",
-            "path": "toys/ShadeNotes.html",
-            "color": "var(--ctp-blue)",
-            "category": "Productivity"
-          },
-          {
-            "name": "PomoShade",
-            "desc": "A configurable, aesthetic Pomodoro timer with persistent settings, audio alerts, and notifications.",
-            "path": "toys/PomoShade.html",
-            "color": "var(--ctp-mauve)",
-            "category": "Productivity"
-          },
-          {
-            "name": "Markdown Blacksmith",
-            "desc": "A split-pane Markdown editor with Vim keybindings, PDF export, and drag-and-drop support.",
-            "path": "toys/MarkdownBlacksmith.html",
-            "color": "var(--ctp-lavender)",
-            "category": "Tool"
-          },
-          {
-            "name": "ForgeCalculate",
-            "desc": "A precise scientific calculator with complex math functions. Themed in Catppuccin Macchiato.",
-            "path": "toys/ForgeCalculate.html",
-            "color": "var(--ctp-blue)",
-            "category": "Tool"
-          },
-          {
-            "name": "CanvasForge",
-            "desc": "A fluid, vector-feel digital sketchbook with undo/redo, high-DPI support, and image export.",
-            "path": "toys/CanvasForge.html",
-            "color": "var(--ctp-pink)",
-            "category": "Utility"
-          },
-          {
-            "name": "Catppuccin Defense",
-            "desc": "A production-grade, infinite-wave Tower Defense engine. Features ECS architecture and local persistence.",
-            "path": "toys/CatppuccinDefense.html",
-            "color": "var(--ctp-red)",
-            "category": "Game"
-          },
-          {
-            "name": "Eternal Bloom",
-            "desc": "A relaxing idle garden simulator. Grow lilies, control the weather, and unlock cosmic secrets.",
-            "path": "toys/EternalBloom.html",
-            "color": "var(--ctp-pink)",
-            "category": "Game"
-          },
-          {
-            "name": "SerpentSaga",
-            "desc": "A feature-rich Snake game with touch controls, power-ups, campaign modes, and unlockable skins.",
-            "path": "toys/SerpentSaga.html",
-            "color": "var(--ctp-green)",
-            "category": "Game"
-          },
-        ];
+  <footer>
+    <div>MIT License &bull; Use at your own risk</div>
+    <div class="warning">⚠️ Experiments: Expect bugs, quirks, and sudden rewrites.</div>
+    <div style="margin-top: 20px; opacity: 0.5; font-family: var(--font-mono); font-size: 0.7rem;">
+      TOYS FORGED
+    </div>
+  </footer>
 
-        // --- RENDER ENGINE ---
-        const grid = document.getElementById('app-grid');
-        const searchInput = document.getElementById('search');
-        const filters = document.querySelectorAll('.filter-btn');
-        let activeFilter = 'all';
+  <script>
+    // --- SHADOWTOYS REGISTRY ---
+    const apps = [
+      {
+        "name": "Zenith // Flow",
+        "desc": "A personal Kanban board with drag-and-drop, tagging, and mobile-optimized horizontal scrolling.",
+        "path": "toys/Zenith.html",
+        "color": "var(--ctp-peach)",
+        "category": "Productivity"
+      },
+      {
+        "name": "ShadeNotes",
+        "desc": "A sleek, mobile-first Markdown editor built with Vue.js. All your notes, saved locally.",
+        "path": "toys/ShadeNotes.html",
+        "color": "var(--ctp-blue)",
+        "category": "Productivity"
+      },
+      {
+        "name": "PomoShade",
+        "desc": "A configurable, aesthetic Pomodoro timer with persistent settings, audio alerts, and notifications.",
+        "path": "toys/PomoShade.html",
+        "color": "var(--ctp-mauve)",
+        "category": "Productivity"
+      },
+      {
+        "name": "Markdown Blacksmith",
+        "desc": "A split-pane Markdown editor with Vim keybindings, PDF export, and drag-and-drop support.",
+        "path": "toys/MarkdownBlacksmith.html",
+        "color": "var(--ctp-lavender)",
+        "category": "Tool"
+      },
+      {
+        "name": "ForgeCalculate",
+        "desc": "A precise scientific calculator with complex math functions. Themed in Catppuccin Macchiato.",
+        "path": "toys/ForgeCalculate.html",
+        "color": "var(--ctp-blue)",
+        "category": "Tool"
+      },
+      {
+        "name": "CanvasForge",
+        "desc": "A fluid, vector-feel digital sketchbook with undo/redo, high-DPI support, and image export.",
+        "path": "toys/CanvasForge.html",
+        "color": "var(--ctp-pink)",
+        "category": "Utility"
+      },
+      {
+        "name": "GourmetCompass Open",
+        "desc": "A free, local-first restaurant finder for India. Uses OpenStreetMap & PIN codes to locate dining spots without API keys.",
+        "path": "toys/GourmetCompass.html",
+        "color": "var(--ctp-teal)",
+        "category": "Utility"
+      },
+      {
+        "name": "Catppuccin Defense",
+        "desc": "A production-grade, infinite-wave Tower Defense engine. Features ECS architecture and local persistence.",
+        "path": "toys/CatppuccinDefense.html",
+        "color": "var(--ctp-red)",
+        "category": "Game"
+      },
+      {
+        "name": "Eternal Bloom",
+        "desc": "A relaxing idle garden simulator. Grow lilies, control the weather, and unlock cosmic secrets.",
+        "path": "toys/EternalBloom.html",
+        "color": "var(--ctp-pink)",
+        "category": "Game"
+      },
+      {
+        "name": "SerpentSaga",
+        "desc": "A feature-rich Snake game with touch controls, power-ups, campaign modes, and unlockable skins.",
+        "path": "toys/SerpentSaga.html",
+        "color": "var(--ctp-green)",
+        "category": "Game"
+      },
+    ];
 
-        function render() {
-            grid.innerHTML = '';
-            const query = searchInput.value.toLowerCase();
-            
-            const filtered = apps.filter(app => {
-                const matchesSearch = app.name.toLowerCase().includes(query) || app.desc.toLowerCase().includes(query);
-                const matchesFilter = activeFilter === 'all' || app.category === activeFilter || (activeFilter === 'Tool' && app.category === 'Utility');
-                return matchesSearch && matchesFilter;
-            });
+    // --- RENDER ENGINE ---
+    const grid = document.getElementById('app-grid');
+    const searchInput = document.getElementById('search');
+    const filters = document.querySelectorAll('.filter-btn');
+    let activeFilter = 'all';
 
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="empty">No artifacts found in the void.</div>`;
-                return;
-            }
+    function render() {
+      grid.innerHTML = '';
+      const query = searchInput.value.toLowerCase();
 
-            filtered.forEach(app => {
-                // Determine raw color value for CSS var mapping
-                const cssVar = app.color.match(/var\(([^)]+)\)/)[1];
-                
-                const card = document.createElement('a');
-                card.className = 'card';
-                card.href = app.path;
-                card.target = "_blank";
-                card.style.setProperty('--card-color', app.color);
-                
-                card.innerHTML = `
+      const filtered = apps.filter(app => {
+        const matchesSearch = app.name.toLowerCase().includes(query) || app.desc.toLowerCase().includes(query);
+        const matchesFilter = activeFilter === 'all' || app.category === activeFilter || (activeFilter === 'Tool' && app.category === 'Utility');
+        return matchesSearch && matchesFilter;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="empty">No artifacts found in the void.</div>`;
+        return;
+      }
+
+      filtered.forEach(app => {
+        // Determine raw color value for CSS var mapping
+        const cssVar = app.color.match(/var\(([^)]+)\)/)[1];
+
+        const card = document.createElement('a');
+        card.className = 'card';
+        card.href = app.path;
+        card.target = "_blank";
+        card.style.setProperty('--card-color', app.color);
+
+        card.innerHTML = `
                     <div class="card-header">
                         <h2 class="card-title">${app.name}</h2>
                         <span class="card-badge">${app.category}</span>
@@ -392,25 +479,26 @@
                         </div>
                     </div>
                 `;
-                grid.appendChild(card);
-            });
-        }
+        grid.appendChild(card);
+      });
+    }
 
-        // --- EVENTS ---
-        searchInput.addEventListener('input', render);
+    // --- EVENTS ---
+    searchInput.addEventListener('input', render);
 
-        filters.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filters.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                activeFilter = btn.getAttribute('data-filter');
-                render();
-            });
-        });
-
-        // Initialize
+    filters.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filters.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.getAttribute('data-filter');
         render();
+      });
+    });
 
-    </script>
+    // Initialize
+    render();
+
+  </script>
 </body>
+
 </html>
