@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TetraFlux</title>
-    <meta name="theme-color" content="#1e1e2e">
+    <meta name="theme-color" content="#24273a">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;800&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
@@ -12,8 +12,9 @@
 
     <style>
         :root {
-            --ctp-base: #1e1e2e;
-            --ctp-mantle: #181825;
+            --ctp-base: #24273a;
+            --ctp-mantle: #1e2030;
+            --ctp-crust: #11111b;
             --ctp-surface0: #313244;
             --ctp-surface1: #45475a;
             --ctp-text: #cad3f5;
@@ -33,96 +34,88 @@
             background: var(--ctp-base);
             color: var(--ctp-text);
             font-family: 'Inter', sans-serif;
-            /* Critical for mobile: Uses dynamic viewport height */
-            height: 100dvh; 
-            width: 100vw;
+            height: 100vh; 
+            height: 100dvh; /* Critical for mobile browsers */
             overflow: hidden;
-            display: flex; 
-            flex-direction: column;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        /* --- LAYOUT CONTAINER --- */
-        #game-layout {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 10px 16px 20px 16px; /* Bottom padding for safe area */
+        #game-container {
+            position: relative;
+            width: 100%; max-width: 600px;
+            height: 100%;
+            display: flex; flex-direction: column;
+            padding: 16px;
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
         }
 
-        /* --- HUD (Top) --- */
+        /* --- HUD --- */
         .hud {
-            flex-shrink: 0; /* Prevent shrinking */
             display: flex; justify-content: space-between; align-items: flex-end;
             margin-bottom: 12px;
-            padding: 0 4px;
+            flex-shrink: 0; /* Prevent HUD from squishing */
         }
         
         .score-block { display: flex; flex-direction: column; }
         .label { font-size: 0.75rem; color: var(--ctp-subtext); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-        .value { font-family: 'JetBrains Mono', monospace; font-size: 1.75rem; font-weight: 800; color: var(--ctp-text); line-height: 1; }
-        .value.highlight { color: var(--ctp-yellow); text-shadow: 0 0 15px rgba(238, 212, 159, 0.2); }
+        .value { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 800; color: var(--ctp-text); line-height: 1; }
+        .value.highlight { color: var(--ctp-yellow); text-shadow: 0 0 10px rgba(238, 212, 159, 0.3); }
 
-        /* --- CANVAS AREA (Middle) --- */
-        .viewport {
-            flex: 1; /* Takes all remaining vertical space */
+        /* --- CANVAS --- */
+        .canvas-wrapper {
             position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 0; /* Important for flex child scrolling/resizing */
-        }
-
-        .canvas-frame {
-            position: relative;
+            flex: 1; /* Takes all available remaining height */
             background: var(--ctp-mantle);
             border: 2px solid var(--ctp-surface0);
             border-radius: var(--radius);
             overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-            /* Dimensions set by JS to maintain aspect ratio */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            min-height: 0; /* Important for flex containers */
         }
 
-        canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+        canvas { display: block; width: 100%; height: 100%; }
 
-        /* --- CONTROLS (Bottom) --- */
+        /* --- CONTROLS --- */
         .controls-area {
-            flex-shrink: 0;
             margin-top: 16px;
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
+            flex-shrink: 0; /* Don't shrink controls */
             height: 140px; /* Fixed control height */
         }
 
         .btn-ctrl {
             background: var(--ctp-surface0);
             border: none; border-radius: 12px;
-            color: var(--ctp-text); font-size: 1.8rem;
+            color: var(--ctp-text); font-size: 1.5rem;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: background 0.1s, transform 0.1s;
+            cursor: pointer; transition: transform 0.1s, background 0.1s;
             box-shadow: 0 4px 0 var(--ctp-surface1);
-            touch-action: manipulation;
+            position: relative;
         }
-        .btn-ctrl:active { transform: translateY(4px); box-shadow: none; background: var(--ctp-surface1); }
         
-        .btn-lg { 
-            grid-column: span 3; 
-            background: var(--ctp-mauve); 
-            color: var(--ctp-base); 
-            box-shadow: 0 4px 0 #b08add; 
-            font-size: 1rem; 
-            font-weight: 800; 
-            letter-spacing: 1px;
+        /* Layout for D-Pad feel */
+        #btn-left { grid-column: 1; grid-row: 2; border-radius: 12px 4px 4px 12px; }
+        #btn-down { grid-column: 2; grid-row: 2; border-radius: 4px; }
+        #btn-right { grid-column: 3; grid-row: 2; border-radius: 4px 12px 12px 4px; }
+        #btn-rot { grid-column: 2; grid-row: 1; border-radius: 12px 12px 0 0; background: var(--ctp-surface1); }
+        
+        /* Big Action Button */
+        #btn-drop { 
+            grid-column: 4; grid-row: 1 / span 2; 
+            background: var(--ctp-mauve); color: var(--ctp-base); 
+            box-shadow: 0 4px 0 #b08add;
+            font-weight: 800; font-size: 1rem;
+            flex-direction: column; gap: 4px;
         }
-        .btn-lg:active { background: #b08add; }
+        
+        .btn-ctrl:active { transform: translateY(4px); box-shadow: none; opacity: 0.8; }
 
         /* --- OVERLAYS --- */
         .overlay {
             position: absolute; inset: 0;
-            background: rgba(30, 30, 46, 0.92);
+            background: rgba(30, 30, 46, 0.95);
             backdrop-filter: blur(8px);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 10; opacity: 0; pointer-events: none;
@@ -130,33 +123,33 @@
         }
         .overlay.active { opacity: 1; pointer-events: auto; }
 
-        h1 { font-size: 2.5rem; font-weight: 900; margin: 0; letter-spacing: -2px; color: var(--ctp-mauve); text-align: center; line-height: 1; }
-        .subtitle { color: var(--ctp-subtext); margin: 10px 0 30px; font-size: 0.9rem; text-align: center; }
+        h1 { font-size: 3rem; font-weight: 900; margin: 0; letter-spacing: -2px; color: var(--ctp-mauve); text-shadow: 0 4px 20px rgba(203, 166, 247, 0.4); text-align: center; line-height: 0.9; }
+        .subtitle { color: var(--ctp-subtext); margin: 10px 0 30px; font-size: 0.9rem; }
 
         .menu-btn {
             background: var(--ctp-blue); color: var(--ctp-base);
-            border: none; padding: 14px 32px; border-radius: 50px;
-            font-size: 1rem; font-weight: 800; cursor: pointer;
-            box-shadow: 0 8px 20px rgba(137, 180, 250, 0.3);
+            border: none; padding: 16px 40px; border-radius: 50px;
+            font-size: 1.1rem; font-weight: 800; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(137, 180, 250, 0.3);
             transition: transform 0.1s;
         }
         .menu-btn:active { transform: scale(0.95); }
 
-        .settings-row { margin-top: 24px; display: flex; gap: 24px; }
-        .icon-toggle { font-size: 1.8rem; color: var(--ctp-surface1); cursor: pointer; transition: color 0.2s; }
-        .icon-toggle.on { color: var(--ctp-green); }
+        .settings-row { margin-top: 30px; display: flex; gap: 24px; }
+        .icon-toggle { font-size: 1.8rem; color: var(--ctp-surface1); cursor: pointer; transition: color 0.2s; padding: 10px; background: var(--ctp-mantle); border-radius: 50%; }
+        .icon-toggle.on { color: var(--ctp-green); background: var(--ctp-surface0); }
 
-        /* Desktop Adjustments */
-        @media (min-width: 600px) {
-            .controls-area { display: none; } 
-            .canvas-frame { border-width: 4px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-            h1 { font-size: 3.5rem; }
+        /* Desktop specific */
+        @media (min-width: 800px) {
+            .controls-area { display: none; } /* Keyboard only on desktop */
+            .canvas-wrapper { border-width: 4px; }
+            #game-container { padding: 40px; }
         }
     </style>
 </head>
 <body>
 
-    <div id="game-layout">
+    <div id="game-container">
         
         <!-- HUD -->
         <div class="hud">
@@ -170,39 +163,40 @@
             </div>
         </div>
 
-        <!-- VIEWPORT -->
-        <div class="viewport" id="viewport">
-            <div class="canvas-frame" id="canvasFrame">
-                <canvas id="gameCanvas"></canvas>
-                
-                <!-- START SCREEN -->
-                <div id="start-screen" class="overlay active">
-                    <h1>TETRA<br>FLUX</h1>
-                    <p class="subtitle">Stack // Clear // Survive</p>
-                    <button class="menu-btn" onclick="Game.start()">INITIALIZE</button>
-                    <div class="settings-row">
-                        <i class="ph-fill ph-speaker-high icon-toggle on" id="btn-sfx" onclick="AudioSys.toggle()"></i>
-                        <i class="ph-fill ph-vibrate icon-toggle on" id="btn-vib" onclick="Game.toggleVib()"></i>
-                    </div>
+        <!-- CANVAS -->
+        <div class="canvas-wrapper" id="wrapper">
+            <canvas id="gameCanvas"></canvas>
+            
+            <!-- START SCREEN -->
+            <div id="start-screen" class="overlay active">
+                <h1>TETRA<br>FLUX</h1>
+                <p class="subtitle">Stack. Clear. Survive.</p>
+                <button class="menu-btn" onclick="Game.start()">START ENGINE</button>
+                <div class="settings-row">
+                    <i class="ph-fill ph-speaker-high icon-toggle on" id="btn-sfx" onclick="AudioSys.toggle()"></i>
+                    <i class="ph-fill ph-vibrate icon-toggle on" id="btn-vib" onclick="Game.toggleVib()"></i>
                 </div>
+            </div>
 
-                <!-- GAME OVER -->
-                <div id="game-over" class="overlay">
-                    <h1 style="color:var(--ctp-red)">SYSTEM<br>HALTED</h1>
-                    <p class="subtitle">Overflow Detected</p>
-                    <div class="value" id="final-score" style="margin-bottom:20px; font-size:2.5rem;">0</div>
-                    <button class="menu-btn" style="background:var(--ctp-red)" onclick="Game.start()">REBOOT</button>
-                </div>
+            <!-- GAME OVER -->
+            <div id="game-over" class="overlay">
+                <h1 style="color:var(--ctp-red)">CRITICAL<br>FAILURE</h1>
+                <p class="subtitle">System Overloaded</p>
+                <div class="value" id="final-score" style="margin-bottom:20px; font-size:2rem;">0</div>
+                <button class="menu-btn" style="background:var(--ctp-red)" onclick="Game.start()">REBOOT</button>
             </div>
         </div>
 
-        <!-- CONTROLS -->
+        <!-- MOBILE CONTROLS -->
         <div class="controls-area">
-            <button class="btn-ctrl" onpointerdown="Game.input('left')" onpointerup="Game.clearInput()" onpointerleave="Game.clearInput()"><i class="ph-bold ph-caret-left"></i></button>
-            <button class="btn-ctrl" onclick="Game.input('rotate')"><i class="ph-bold ph-arrow-clockwise"></i></button>
-            <button class="btn-ctrl" onpointerdown="Game.input('right')" onpointerup="Game.clearInput()" onpointerleave="Game.clearInput()"><i class="ph-bold ph-caret-right"></i></button>
-            <button class="btn-ctrl" onpointerdown="Game.input('down')" onpointerup="Game.clearInput()" onpointerleave="Game.clearInput()"><i class="ph-bold ph-caret-down"></i></button>
-            <button class="btn-ctrl btn-lg" onclick="Game.input('drop')">HARD DROP</button>
+            <button class="btn-ctrl" id="btn-rot" onclick="Game.input('rotate')"><i class="ph-bold ph-arrow-clockwise"></i></button>
+            <button class="btn-ctrl" id="btn-left" onclick="Game.input('left')"><i class="ph-bold ph-caret-left"></i></button>
+            <button class="btn-ctrl" id="btn-down" onclick="Game.input('down')"><i class="ph-bold ph-caret-down"></i></button>
+            <button class="btn-ctrl" id="btn-right" onclick="Game.input('right')"><i class="ph-bold ph-caret-right"></i></button>
+            <button class="btn-ctrl" id="btn-drop" onclick="Game.input('drop')">
+                <i class="ph-bold ph-arrow-fat-line-down" style="font-size: 1.8rem"></i>
+                <span style="font-size:0.6rem; font-weight:800; opacity:0.8">DROP</span>
+            </button>
         </div>
 
     </div>
@@ -210,7 +204,7 @@
 <script>
 /**
  * TETRA FLUX ENGINE v2.0
- * Mobile-First Responsive Architecture
+ * Mobile-Optimized Scaling Logic
  */
 
 // --- AUDIO SYSTEM ---
@@ -234,7 +228,6 @@ const AudioSys = {
         gain.connect(this.ctx.destination);
         const now = this.ctx.currentTime;
 
-        // Sound Synthesis Profiles
         switch (type) {
             case 'move':
                 osc.type = 'triangle'; osc.frequency.setValueAtTime(220, now);
@@ -251,7 +244,8 @@ const AudioSys = {
             case 'clear':
                 [440, 554, 659, 880].forEach((freq, i) => {
                     const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
-                    o.connect(g); g.connect(this.ctx.destination); o.type = 'triangle'; o.frequency.value = freq;
+                    o.connect(g); g.connect(this.ctx.destination);
+                    o.type = 'triangle'; o.frequency.value = freq;
                     g.gain.setValueAtTime(0.05, now + i*0.05); g.gain.exponentialRampToValueAtTime(0.001, now + i*0.05 + 0.3);
                     o.start(now + i*0.05); o.stop(now + i*0.05 + 0.3);
                 }); break;
@@ -263,55 +257,55 @@ const AudioSys = {
     }
 };
 
-// --- CONFIG ---
+// --- GAME DATA ---
 const COLS = 10;
 const ROWS = 20;
 const COLORS = [null, '#ed8796', '#a6da95', '#cba6f7', '#eed49f', '#8aadf4', '#8bd5ca', '#f5a97f'];
 const SHAPES = [
-    [], [[1,1,0],[0,1,1],[0,0,0]], [[0,2,2],[2,2,0],[0,0,0]], [[0,3,0],[3,3,3],[0,0,0]],
-    [[4,4],[4,4]], [[0,0,0,0],[5,5,5,5],[0,0,0,0],[0,0,0,0]], [[6,0,0],[6,6,6],[0,0,0]], [[0,0,7],[7,7,7],[0,0,0]]
+    [],
+    [[1, 1, 0], [0, 1, 1], [0, 0, 0]], 
+    [[0, 2, 2], [2, 2, 0], [0, 0, 0]], 
+    [[0, 3, 0], [3, 3, 3], [0, 0, 0]], 
+    [[4, 4], [4, 4]],                   
+    [[0, 0, 0, 0], [5, 5, 5, 5], [0, 0, 0, 0], [0, 0, 0, 0]], 
+    [[6, 0, 0], [6, 6, 6], [0, 0, 0]], 
+    [[0, 0, 7], [7, 7, 7], [0, 0, 0]]  
 ];
 
 // --- ENGINE ---
 const Game = {
     canvas: document.getElementById('gameCanvas'),
-    frame: document.getElementById('canvasFrame'),
-    viewport: document.getElementById('viewport'),
     ctx: null,
     grid: [],
     piece: null,
     score: 0,
     highScore: parseInt(localStorage.getItem('tetra_high') || '0'),
-    
-    // Loop Vars
     lastTime: 0,
     dropCounter: 0,
     dropInterval: 1000,
-    
-    // Input Handling
-    inputRepeat: null,
-    
-    // FX
     particles: [],
     shake: 0,
     running: false,
     vibration: true,
-    scale: 20, // Pixels per block
+    
+    // Viewport Logic
+    scale: 20,
+    offsetX: 0,
+    offsetY: 0,
 
     init() {
         this.ctx = this.canvas.getContext('2d');
         this.resize();
-        
-        // Use ResizeObserver for robust layout changes (orientation change, keyboard open)
-        new ResizeObserver(() => this.resize()).observe(this.viewport);
+        window.addEventListener('resize', () => this.resize());
         
         document.addEventListener('keydown', e => {
             if (!this.running) return;
-            if (e.key === 'ArrowLeft') this.move(-1);
-            else if (e.key === 'ArrowRight') this.move(1);
-            else if (e.key === 'ArrowDown') this.drop();
-            else if (e.key === 'ArrowUp') this.rotate();
-            else if (e.key === ' ') this.hardDrop();
+            const k = e.key;
+            if(k==='ArrowLeft') this.move(-1);
+            else if(k==='ArrowRight') this.move(1);
+            else if(k==='ArrowDown') this.drop();
+            else if(k==='ArrowUp') this.rotate();
+            else if(k===' ') this.hardDrop();
         });
 
         document.getElementById('high-score').innerText = this.highScore;
@@ -319,28 +313,25 @@ const Game = {
     },
 
     resize() {
-        // Calculate max available dimensions in the viewport container
-        const availW = this.viewport.clientWidth;
-        const availH = this.viewport.clientHeight;
+        const wrapper = document.getElementById('wrapper');
+        const w = wrapper.clientWidth;
+        const h = wrapper.clientHeight;
+        
+        this.canvas.width = w;
+        this.canvas.height = h;
 
-        // Calculate maximum cell size that fits both dimensions
-        // Subtracting small buffer for borders/shadows
-        const scaleW = Math.floor((availW - 10) / COLS);
-        const scaleH = Math.floor((availH - 10) / ROWS);
+        // Calculate Scale to fit EITHER width OR height
+        const scaleX = w / COLS;
+        const scaleY = h / ROWS;
         
-        // Use the smaller scale to ensure it fits entirely
-        this.scale = Math.min(scaleW, scaleH);
-
-        // Apply dimensions
-        const cssW = this.scale * COLS;
-        const cssH = this.scale * ROWS;
+        // Use smallest scale so it fits
+        this.scale = Math.floor(Math.min(scaleX, scaleY));
         
-        this.frame.style.width = `${cssW}px`;
-        this.frame.style.height = `${cssH}px`;
-        this.canvas.width = cssW;
-        this.canvas.height = cssH;
+        // Calculate offsets to center the board
+        this.offsetX = Math.floor((w - (this.scale * COLS)) / 2);
+        this.offsetY = Math.floor((h - (this.scale * ROWS)) / 2);
         
-        if (!this.running) this.draw(); // Redraw static if paused/menu
+        if(!this.running && this.ctx) this.draw(); // Redraw if paused/menu
     },
 
     start() {
@@ -353,6 +344,7 @@ const Game = {
         this.spawnPiece();
         document.querySelectorAll('.overlay').forEach(el => el.classList.remove('active'));
         if (AudioSys.ctx.state === 'suspended') AudioSys.ctx.resume();
+        this.resize(); // Ensure correct size on start
         this.loop();
     },
 
@@ -366,7 +358,6 @@ const Game = {
         if (this.collide(this.grid, this.piece)) this.gameOver();
     },
 
-    // --- GAMEPLAY ---
     drop() {
         this.piece.pos.y++;
         if (this.collide(this.grid, this.piece)) {
@@ -387,7 +378,6 @@ const Game = {
         this.arenaSweep();
         this.triggerShake(5);
         AudioSys.play('drop');
-        if(this.vibration && navigator.vibrate) navigator.vibrate(10);
     },
 
     move(dir) {
@@ -444,9 +434,7 @@ const Game = {
     arenaSweep() {
         let rowCount = 0;
         outer: for (let y = this.grid.length - 1; y > 0; --y) {
-            for (let x = 0; x < this.grid[y].length; ++x) {
-                if (this.grid[y][x] === 0) continue outer;
-            }
+            for (let x = 0; x < this.grid[y].length; ++x) if (this.grid[y][x] === 0) continue outer;
             const row = this.grid.splice(y, 1)[0].fill(0);
             this.grid.unshift(row);
             ++y;
@@ -462,7 +450,6 @@ const Game = {
         }
     },
 
-    // --- LOOP & DRAW ---
     loop(time = 0) {
         if (!this.running) return;
         const deltaTime = time - this.lastTime;
@@ -474,50 +461,64 @@ const Game = {
     },
 
     draw() {
+        // Base
         this.ctx.fillStyle = '#1e1e2e';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
+        // Game Board Area Background
+        this.ctx.fillStyle = '#181825'; // Mantle
+        this.ctx.fillRect(this.offsetX, this.offsetY, this.scale * COLS, this.scale * ROWS);
+
         this.ctx.save();
         if (this.shake > 0) {
-            this.ctx.translate((Math.random()-.5)*this.shake, (Math.random()-.5)*this.shake);
+            this.ctx.translate((Math.random() - 0.5) * this.shake, (Math.random() - 0.5) * this.shake);
             this.shake *= 0.9;
             if(this.shake < 0.5) this.shake = 0;
         }
 
         this.drawMatrix(this.grid, {x:0, y:0});
 
-        // Ghost
-        let ghostPos = { ...this.piece.pos };
-        while (!this.collide(this.grid, { matrix: this.piece.matrix, pos: ghostPos })) ghostPos.y++;
-        ghostPos.y--;
-        this.ctx.globalAlpha = 0.2;
-        this.drawMatrix(this.piece.matrix, ghostPos, true);
-        this.ctx.globalAlpha = 1.0;
+        if(this.piece) {
+            let ghostPos = { ...this.piece.pos };
+            while (!this.collide(this.grid, { matrix: this.piece.matrix, pos: ghostPos })) ghostPos.y++;
+            ghostPos.y--; 
+            
+            this.ctx.globalAlpha = 0.2;
+            this.drawMatrix(this.piece.matrix, ghostPos, true);
+            this.ctx.globalAlpha = 1.0;
+            this.drawMatrix(this.piece.matrix, this.piece.pos);
+        }
 
-        this.drawMatrix(this.piece.matrix, this.piece.pos);
         this.updateParticles();
         this.ctx.restore();
+        
+        // Border for game area
+        this.ctx.strokeStyle = '#313244';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(this.offsetX, this.offsetY, this.scale * COLS, this.scale * ROWS);
     },
 
     drawMatrix(matrix, offset, ghost = false) {
         matrix.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value !== 0) {
-                    const cx = (x + offset.x) * this.scale;
-                    const cy = (y + offset.y) * this.scale;
-                    const size = Math.ceil(this.scale) + 1; // Slight overlap to prevent gaps
-                    
+                    const cx = this.offsetX + (x + offset.x) * this.scale;
+                    const cy = this.offsetY + (y + offset.y) * this.scale;
+                    const size = this.scale;
+                    const gap = Math.max(1, size * 0.05);
+                    const drawSize = size - gap;
+
                     if(!ghost) {
                         this.ctx.shadowBlur = 10;
                         this.ctx.shadowColor = COLORS[value];
                     }
-                    this.ctx.fillStyle = COLORS[value];
-                    this.ctx.fillRect(cx, cy, size, size);
                     
-                    // Bevel effect
+                    this.ctx.fillStyle = COLORS[value];
+                    this.ctx.fillRect(cx + gap/2, cy + gap/2, drawSize, drawSize);
+                    
                     this.ctx.shadowBlur = 0;
                     this.ctx.fillStyle = 'rgba(255,255,255,0.2)';
-                    this.ctx.fillRect(cx, cy, size, size/4);
+                    this.ctx.fillRect(cx + gap/2, cy + gap/2, drawSize, drawSize/3);
                 }
             });
         });
@@ -525,8 +526,10 @@ const Game = {
 
     spawnParticle(x, y) {
         this.particles.push({
-            x: x * this.scale, y: y * this.scale,
-            vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10,
+            x: this.offsetX + x * this.scale,
+            y: this.offsetY + y * this.scale,
+            vx: (Math.random() - 0.5) * 10,
+            vy: (Math.random() - 0.5) * 10,
             life: 1.0, color: '#cdd6f4'
         });
     },
@@ -537,13 +540,12 @@ const Game = {
             p.x += p.vx; p.y += p.vy; p.life -= 0.05;
             this.ctx.fillStyle = p.color;
             this.ctx.globalAlpha = p.life;
-            this.ctx.fillRect(p.x, p.y, 4, 4);
+            this.ctx.fillRect(p.x, p.y, this.scale/4, this.scale/4);
             if (p.life <= 0) this.particles.splice(i, 1);
         }
         this.ctx.globalAlpha = 1.0;
     },
 
-    // --- UTILS ---
     updateScore(val) {
         this.score += val;
         document.getElementById('score').innerText = this.score;
@@ -562,34 +564,19 @@ const Game = {
     },
 
     triggerShake(amount) { this.shake = amount; },
-    toggleVib() { this.vibration = !this.vibration; document.getElementById('btn-vib').classList.toggle('on', this.vibration); },
 
-    // Mobile Input Handling
     input(action) {
         if (!this.running) return;
-        
-        const doAction = () => {
-            if (action === 'left') this.move(-1);
-            else if (action === 'right') this.move(1);
-            else if (action === 'down') this.drop();
-            else if (action === 'rotate') this.rotate();
-            else if (action === 'drop') this.hardDrop();
-        };
-
-        doAction();
-
-        // Repeat for left/right/down holds
-        if (action !== 'rotate' && action !== 'drop') {
-            this.clearInput();
-            this.inputRepeat = setInterval(doAction, 100);
-        }
+        if (action === 'left') this.move(-1);
+        if (action === 'right') this.move(1);
+        if (action === 'down') this.drop();
+        if (action === 'rotate') this.rotate();
+        if (action === 'drop') this.hardDrop();
     },
 
-    clearInput() {
-        if (this.inputRepeat) {
-            clearInterval(this.inputRepeat);
-            this.inputRepeat = null;
-        }
+    toggleVib() {
+        this.vibration = !this.vibration;
+        document.getElementById('btn-vib').classList.toggle('on', this.vibration);
     }
 };
 
