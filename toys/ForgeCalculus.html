@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ForgeCalculus | Engineering Workstation</title>
+  <style>
+    /* CATPPUCCIN MOCHA PALETTE */
+    :root {
+      --base: #1e1e2e;
+      --mantle: #181825;
+      --crust: #11111b;
+      --surface0: #313244;
+      --surface1: #45475a;
+      --surface2: #585b70;
+      --text: #cdd6f4;
+      --blue: #89b4fa;
+      --green: #a6e3a1;
+      --red: #f38ba8;
+      --mauve: #cba6f7;
+      --yellow: #f9e2af;
+      --peach: #fab387;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      height: 100dvh;
+      background-color: var(--base);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      border-left: 1px solid var(--surface0);
+      border-right: 1px solid var(--surface0);
+    }
+
+    /* HEADER */
+    header {
+      background-color: var(--mantle);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--surface0);
+    }
+
+    .brand {
+      color: var(--mauve);
+      font-weight: 700;
+      font-size: 1.1em;
+      letter-spacing: -0.5px;
+    }
+
+    .brand span {
+      color: var(--surface2);
+      font-weight: 400;
+    }
+
+    .status-bar {
+      display: flex;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: var(--surface1);
+      color: var(--text);
+      cursor: pointer;
+      transition: 0.1s;
+    }
+
+    .badge.active {
+      background: var(--blue);
+      color: var(--base);
+      font-weight: 800;
+    }
+
+    .badge:active {
+      transform: scale(0.95);
+    }
+
+    /* TERMINAL */
+    #terminal {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+
+    #terminal::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    #terminal::-webkit-scrollbar-thumb {
+      background: var(--surface1);
+    }
+
+    .log-entry {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: fadeUp 0.15s ease-out;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .log-in {
+      color: var(--surface2);
+      font-size: 0.9em;
+      display: flex;
+      gap: 8px;
+    }
+
+    .log-in::before {
+      content: "➜";
+      color: var(--green);
+    }
+
+    .log-out {
+      color: var(--blue);
+      font-weight: 600;
+      font-size: 1.2em;
+      padding-left: 20px;
+      cursor: pointer;
+    }
+
+    .log-out:active {
+      opacity: 0.5;
+    }
+
+    .log-err {
+      color: var(--red);
+      padding-left: 20px;
+      font-style: italic;
+    }
+
+    .log-sys {
+      color: var(--yellow);
+      padding-left: 20px;
+      white-space: pre-wrap;
+      line-height: 1.4;
+      font-size: 0.9em;
+    }
+
+    /* INPUT AREA */
+    #input-area {
+      background-color: var(--mantle);
+      border-top: 1px solid var(--surface0);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cmd-line {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      gap: 10px;
+      border-bottom: 1px solid var(--surface0);
+    }
+
+    .prompt {
+      color: var(--green);
+      font-weight: bold;
+    }
+
+    #cmd-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      padding: 4px 0;
+      caret-color: var(--blue);
+    }
+
+    /* KEYPAD */
+    .prevent-focus {
+      /* Class hook for JS */
+    }
+
+    .func-toolbar {
+      display: flex;
+      gap: 6px;
+      padding: 8px 12px;
+      overflow-x: auto;
+      background: var(--crust);
+    }
+
+    .func-toolbar::-webkit-scrollbar {
+      height: 0;
+      width: 0;
+    }
+
+    .f-btn {
+      background: var(--surface1);
+      color: var(--text);
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      font-family: var(--font-mono);
+      flex-shrink: 0;
+    }
+
+    .f-btn.eng {
+      color: var(--peach);
+    }
+
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      background: var(--surface0);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .k-btn {
+      background: var(--mantle);
+      border: none;
+      color: var(--text);
+      font-size: 1.1rem;
+      padding: 16px 0;
+      cursor: pointer;
+      font-family: var(--font-mono);
+    }
+
+    .k-btn:active {
+      background: var(--surface1);
+    }
+
+    .k-op {
+      color: var(--mauve);
+      background: var(--crust);
+    }
+
+    .k-const {
+      color: var(--peach);
+    }
+
+    .k-unit {
+      color: var(--green);
+      font-size: 0.95rem;
+    }
+
+    .k-enter {
+      background: var(--blue);
+      color: var(--base);
+      font-weight: bold;
+      grid-row: span 2;
+    }
+
+    .k-del {
+      color: var(--red);
+    }
+
+    @media (min-width: 600px) {
+      .keypad-grid {
+        gap: 6px;
+        padding: 10px;
+        background: var(--mantle);
+      }
+
+      .k-btn {
+        border-radius: 6px;
+        background: var(--surface0);
+      }
+
+      .k-enter {
+        height: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app">
+    <header>
+      <div class="brand">Forge<span>Calculus</span></div>
+      <div class="status-bar">
+        <div id="mode-badge" class="badge active" onclick="engine.toggleMode()">DEG</div>
+        <div class="badge" onclick="engine.clear()">CLR</div>
+      </div>
+    </header>
+
+    <div id="terminal"></div>
+
+    <div id="input-area">
+      <div class="cmd-line">
+        <span class="prompt">❯</span>
+        <input type="text" id="cmd-input" placeholder="..." autocomplete="off">
+      </div>
+
+      <!-- Buttons with 'prevent-focus' class applied via container delegation or class -->
+      <div class="func-toolbar prevent-focus-zone">
+        <button class="f-btn" onclick="engine.insert('sin(')">sin</button>
+        <button class="f-btn" onclick="engine.insert('cos(')">cos</button>
+        <button class="f-btn" onclick="engine.insert('tan(')">tan</button>
+        <button class="f-btn" onclick="engine.insert('log(')">log</button>
+        <button class="f-btn" onclick="engine.insert('ln(')">ln</button>
+        <button class="f-btn" onclick="engine.insert('sqrt(')">sqrt</button>
+        <button class="f-btn eng" onclick="engine.insert('par(')">par</button>
+        <button class="f-btn eng" onclick="engine.insert('diff(')">diff</button>
+        <button class="f-btn eng" onclick="engine.insert('integ(')">integ</button>
+        <button class="f-btn" onclick="engine.insert('ans')">ans</button>
+      </div>
+
+      <div class="keypad-grid prevent-focus-zone">
+        <!-- R1 -->
+        <button class="k-btn k-unit" onclick="engine.insert('G')">G</button>
+        <button class="k-btn k-unit" onclick="engine.insert('M')">M</button>
+        <button class="k-btn k-unit" onclick="engine.insert('k')">k</button>
+        <button class="k-btn k-op" onclick="engine.insert('^')">^</button>
+        <button class="k-btn k-del" onclick="engine.backspace()">⌫</button>
+
+        <!-- R2 -->
+        <button class="k-btn k-unit" onclick="engine.insert('m')">m</button>
+        <button class="k-btn" onclick="engine.insert('7')">7</button>
+        <button class="k-btn" onclick="engine.insert('8')">8</button>
+        <button class="k-btn" onclick="engine.insert('9')">9</button>
+        <button class="k-btn k-op" onclick="engine.insert('/')">/</button>
+
+        <!-- R3 -->
+        <button class="k-btn k-unit" onclick="engine.insert('μ')">μ</button>
+        <button class="k-btn" onclick="engine.insert('4')">4</button>
+        <button class="k-btn" onclick="engine.insert('5')">5</button>
+        <button class="k-btn" onclick="engine.insert('6')">6</button>
+        <button class="k-btn k-op" onclick="engine.insert('*')">*</button>
+
+        <!-- R4 -->
+        <button class="k-btn k-unit" onclick="engine.insert('n')">n</button>
+        <button class="k-btn" onclick="engine.insert('1')">1</button>
+        <button class="k-btn" onclick="engine.insert('2')">2</button>
+        <button class="k-btn" onclick="engine.insert('3')">3</button>
+        <button class="k-btn k-op" onclick="engine.insert('-')">-</button>
+
+        <!-- R5 -->
+        <button class="k-btn k-const" onclick="engine.insert('pi')">π</button>
+        <button class="k-btn k-const" onclick="engine.insert('e')">e</button>
+        <button class="k-btn" onclick="engine.insert('0')">0</button>
+        <button class="k-btn" onclick="engine.insert('.')">.</button>
+        <button class="k-btn k-op" onclick="engine.insert('+')">+</button>
+      </div>
+
+      <div style="padding: 0 12px 12px 12px; background: var(--mantle);">
+        <button
+          style="width: 100%; padding: 12px; background: var(--blue); color: var(--base); border: none; border-radius: 6px; font-weight: bold; font-size: 1.1rem; cursor: pointer;"
+          onclick="engine.process()">EXECUTE</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * SHADECALCULUS v2.2
+     * Feature: Non-intrusive Keypad (No OS Keyboard)
+     */
+    class Engine {
+      constructor() {
+        this.state = {
+          mode: 'DEG',
+          history: [],
+          ptr: -1,
+          ans: 0,
+          cursor: 0 // Tracks cursor position manually
+        };
+        this.dom = {
+          input: document.getElementById('cmd-input'),
+          terminal: document.getElementById('terminal'),
+          badge: document.getElementById('mode-badge')
+        };
+        this.init();
+      }
+
+      // --- Math Kernel (unchanged) ---
+      parseSuffixes(expr) {
+        const suffixes = {'T': 'e12', 'G': 'e9', 'M': 'e6', 'k': 'e3', 'm': 'e-3', 'u': 'e-6', 'μ': 'e-6', 'n': 'e-9', 'p': 'e-12'};
+        return expr.replace(/(\d*\.?\d+)([TGMkmuμnp])(?!\w)/g, (m, n, u) => `(${n}*1${suffixes[u]})`);
+      }
+
+      cleanSyntax(expr) {
+        expr = expr.replace(/(\d)\s*([a-zA-Z(])/g, '$1*$2');
+        expr = expr.replace(/(\))\s*([a-zA-Z0-9(])/g, '$1*$2');
+        expr = expr.replace(/\^/g, '**');
+        return expr;
+      }
+
+      snap(val) {
+        const epsilon = 1e-10;
+        if (Math.abs(val) < epsilon) return 0;
+        if (Math.abs(val - Math.round(val)) < epsilon) return Math.round(val);
+        return val;
+      }
+
+      degToRad(d) {return d * (Math.PI / 180);}
+      radToDeg(r) {return r * (180 / Math.PI);}
+
+      getScope() {
+        const isDeg = this.state.mode === 'DEG';
+        return {
+          pi: Math.PI, e: Math.E, phi: 1.6180339887, ans: this.state.ans,
+          sqrt: Math.sqrt, abs: Math.abs, log: Math.log10, ln: Math.log, exp: Math.exp, pow: Math.pow,
+          sin: (x) => this.snap(Math.sin(isDeg ? this.degToRad(x) : x)),
+          cos: (x) => this.snap(Math.cos(isDeg ? this.degToRad(x) : x)),
+          tan: (x) => (isDeg && Math.abs(x % 180) === 90) ? Infinity : this.snap(Math.tan(isDeg ? this.degToRad(x) : x)),
+          asin: (x) => this.snap(isDeg ? this.radToDeg(Math.asin(x)) : Math.asin(x)),
+          acos: (x) => this.snap(isDeg ? this.radToDeg(Math.acos(x)) : Math.acos(x)),
+          atan: (x) => this.snap(isDeg ? this.radToDeg(Math.atan(x)) : Math.atan(x)),
+          par: (...a) => a.length ? this.snap(1 / a.reduce((s, r) => s + (1 / r), 0)) : 0,
+          xc: (f, c) => this.snap(1 / (2 * Math.PI * f * c)),
+          xl: (f, l) => this.snap(2 * Math.PI * f * l),
+          res: (l, c) => this.snap(1 / (2 * Math.PI * Math.sqrt(l * c))),
+          diff: (s, x) => {
+            const h = 1e-5, f = (v) => this.evalRaw(s, v);
+            return this.snap((f(x + h) - f(x - h)) / (2 * h));
+          },
+          integ: (s, a, b, n = 100) => {
+            if (n % 2 !== 0) n++; const h = (b - a) / n, f = (v) => this.evalRaw(s, v);
+            let sum = f(a) + f(b); for (let i = 1; i < n; i++) sum += (i % 2 === 0 ? 2 : 4) * f(a + i * h);
+            return this.snap((h / 3) * sum);
+          }
+        };
+      }
+
+      evalRaw(expr, xVar = null) {
+        if (xVar !== null) expr = expr.replace(/\bx\b/g, `(${xVar})`);
+        expr = this.parseSuffixes(expr);
+        expr = this.cleanSyntax(expr);
+        const scope = this.getScope();
+        try {
+          return new Function(...Object.keys(scope), `return ${expr};`)(...Object.values(scope));
+        } catch (e) {throw new Error("Syntax");}
+      }
+
+      // --- Input & Cursor Management ---
+
+      updateCursor() {
+        // Sync internal cursor with input element's real cursor
+        this.state.cursor = this.dom.input.selectionStart;
+      }
+
+      insert(txt) {
+        const field = this.dom.input;
+
+        // Use tracking cursor if field is not focused, else use real cursor
+        let start = this.state.cursor;
+
+        // Insert text
+        const val = field.value;
+        field.value = val.substring(0, start) + txt + val.substring(start);
+
+        // Update Internal Cursor
+        this.state.cursor += txt.length;
+
+        // Crucial: Update the invisible selection range so if user taps back in, it's correct
+        // But DO NOT call field.focus() to avoid keyboard
+        field.setSelectionRange(this.state.cursor, this.state.cursor);
+
+        // Auto-scroll input to show new text
+        field.scrollLeft = field.scrollWidth;
+      }
+
+      backspace() {
+        const field = this.dom.input;
+        let start = this.state.cursor;
+
+        if (start === 0) return;
+
+        field.value = field.value.substring(0, start - 1) + field.value.substring(start);
+        this.state.cursor--;
+
+        field.setSelectionRange(this.state.cursor, this.state.cursor);
+      }
+
+      // --- Processing ---
+
+      process() {
+        const raw = this.dom.input.value.trim();
+        if (!raw) return;
+
+        this.state.history.push(raw);
+        this.state.ptr = this.state.history.length;
+
+        const cmd = raw.toLowerCase();
+        if (cmd === 'clear') return this.clear();
+
+        try {
+          const res = this.evalRaw(raw);
+          if (res === undefined || isNaN(res)) throw new Error("Result Undefined");
+          this.state.ans = res;
+
+          let display = res;
+          if (typeof res === 'number') {
+            if (Math.abs(res) > 1e9 || (Math.abs(res) < 1e-4 && res !== 0)) {
+              display = res.toExponential(4);
+            } else {
+              display = parseFloat(res.toPrecision(10));
+            }
+          }
+          this.log(raw, display, 'out');
+        } catch (e) {
+          this.log(raw, "Error", 'err');
+        } finally {
+          this.dom.input.value = '';
+          this.state.cursor = 0; // Reset cursor
+        }
+      }
+
+      log(inTxt, outTxt, type) {
+        const el = document.createElement('div');
+        el.className = 'log-entry';
+
+        if (inTxt) {
+          const i = document.createElement('div');
+          i.className = 'log-in';
+          i.textContent = inTxt;
+          el.appendChild(i);
+        }
+
+        const o = document.createElement('div');
+        if (type === 'out') {
+          o.className = 'log-out';
+          o.textContent = `= ${outTxt}`;
+          o.onclick = () => this.insert(String(outTxt));
+        } else if (type === 'err') {
+          o.className = 'log-err'; o.textContent = outTxt;
+        } else {
+          o.className = 'log-sys'; o.textContent = outTxt;
+        }
+        el.appendChild(o);
+        this.dom.terminal.appendChild(el);
+        this.dom.terminal.scrollTop = this.dom.terminal.scrollHeight;
+      }
+
+      toggleMode() {
+        this.state.mode = this.state.mode === 'DEG' ? 'RAD' : 'DEG';
+        this.dom.badge.textContent = this.state.mode;
+        this.log(null, `Mode: ${this.state.mode}`, 'sys');
+      }
+
+      clear() {
+        this.dom.terminal.innerHTML = '';
+        this.state.cursor = 0;
+      }
+
+      init() {
+        const field = this.dom.input;
+
+        // 1. Sync cursor when user Manually types
+        field.addEventListener('keyup', () => this.updateCursor());
+        field.addEventListener('click', () => this.updateCursor());
+        field.addEventListener('touchend', () => this.updateCursor());
+        field.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') this.process();
+        });
+
+        // 2. Prevent Keypad from triggering OS Keyboard
+        // We stop 'mousedown' which is what usually transfers focus
+        const preventZones = document.querySelectorAll('.prevent-focus-zone button');
+        preventZones.forEach(btn => {
+          btn.addEventListener('mousedown', (e) => {
+            e.preventDefault(); // Prevents focus theft, Input stays as is
+          });
+          btn.addEventListener('touchstart', (e) => {
+            // e.preventDefault(); // Optional on some devices, but mousedown usually covers it
+          });
+        });
+
+        this.log(null, "ForgeCalculus v1.0\nEngine Ready.", 'sys');
+      }
+    }
+
+    const engine = new Engine();
+  </script>
+</body>
+
+</html>

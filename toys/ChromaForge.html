@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ChromaForge | Color Engineering</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    :root {
+      /* Catppuccin Mocha Base */
+      --base: #1e1e2e;
+      --mantle: #181825;
+      --surface0: #313244;
+      --surface1: #45475a;
+      --text: #cdd6f4;
+      --subtext: #a6adc8;
+      --overlay: #6c7086;
+
+      /* Dynamic active color */
+      --active: #89b4fa;
+      --active-bg: rgba(137, 180, 250, 0.1);
+
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      outline: none;
+    }
+
+    body {
+      background-color: var(--base);
+      color: var(--text);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      transition: background-color 0.5s var(--ease);
+    }
+
+    /* --- LAYOUT --- */
+    .app-shell {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: 100vh;
+    }
+
+    /* --- SIDEBAR (CONTROLS) --- */
+    .sidebar {
+      background: var(--mantle);
+      border-right: 1px solid var(--surface0);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      overflow-y: auto;
+      position: relative;
+      z-index: 10;
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--subtext);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Color Picker Styles */
+    .picker-wrapper {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      border: 2px solid var(--surface0);
+    }
+
+    input[type="color"] {
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      padding: 0;
+      margin: 0;
+      border: none;
+      cursor: crosshair;
+    }
+
+    .slider-group {
+      margin-top: 10px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: var(--surface0);
+      border-radius: 4px;
+      appearance: none;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--text);
+      border: 2px solid var(--base);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    /* --- MAIN STAGE --- */
+    .stage {
+      padding: 40px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      /* Subtle glow from active color */
+      background: radial-gradient(circle at top right, var(--active-bg), transparent 70%);
+    }
+
+    /* Hero Color Display */
+    .hero-display {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .swatch-lg {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 24px;
+      box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5);
+      background: var(--active);
+      position: relative;
+      transition: background 0.2s;
+    }
+
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .value-card {
+      background: var(--surface0);
+      border: 1px solid var(--surface1);
+      padding: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s var(--ease);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .value-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--active);
+    }
+
+    .value-card:active {
+      transform: scale(0.98);
+    }
+
+    .val-label {
+      font-size: 0.7rem;
+      color: var(--subtext);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .val-data {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    .copy-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .value-card:hover .copy-icon {
+      opacity: 1;
+    }
+
+    /* Sections */
+    .section-header {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-header i {
+      color: var(--active);
+    }
+
+    /* Palette Grid */
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 12px;
+    }
+
+    .color-block {
+      height: 120px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s;
+    }
+
+    .color-block:hover {
+      transform: scale(1.05);
+      z-index: 2;
+    }
+
+    /* Accessibility Cards */
+    .a11y-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .contrast-card {
+      background: var(--mantle);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid var(--surface0);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .contrast-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .pass {
+      background: #a6e3a1;
+      color: #1e1e2e;
+    }
+
+    .fail {
+      background: #f38ba8;
+      color: #1e1e2e;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface0);
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: 8px;
+      border-left: 4px solid var(--active);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s var(--ease);
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Mobile */
+    @media (max-width: 900px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--surface0);
+        max-height: 40vh;
+      }
+
+      .hero-display {
+        grid-template-columns: 1fr;
+      }
+
+      .swatch-lg {
+        height: 150px;
+        width: 100%;
+      }
+
+      .a11y-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-shell">
+
+    <!-- CONTROLS -->
+    <aside class="sidebar">
+      <div class="brand">
+        <i class="ph-fill ph-paint-brush-broad" style="color: var(--active)"></i>
+        ChromaForge
+      </div>
+
+      <div class="input-group">
+        <div class="label">Selector</div>
+        <div class="picker-wrapper">
+          <input type="color" id="nativePicker" value="#89b4fa">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <div class="label">Fine Tune (HSL)</div>
+        <div class="slider-group">
+          <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--subtext)">
+            <span>Hue</span> <span id="val-h">220</span>
+          </div>
+          <input type="range" id="slider-h" min="0" max="360" value="220">
+        </div>
+        <div class="slider-group">
+          <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--subtext)">
+            <span>Saturation</span> <span id="val-s">90%</span>
+          </div>
+          <input type="range" id="slider-s" min="0" max="100" value="90">
+        </div>
+        <div class="slider-group">
+          <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--subtext)">
+            <span>Lightness</span> <span id="val-l">75%</span>
+          </div>
+          <input type="range" id="slider-l" min="0" max="100" value="75">
+        </div>
+      </div>
+
+      <button onclick="Engine.randomize()"
+        style="margin-top:auto; padding:12px; background:var(--surface0); color:var(--text); border:none; border-radius:8px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.2s">
+        <i class="ph-bold ph-shuffle"></i> Randomize
+      </button>
+    </aside>
+
+    <!-- WORKSPACE -->
+    <main class="stage">
+
+      <!-- HERO -->
+      <section class="hero-display">
+        <div class="swatch-lg" id="mainSwatch"></div>
+        <div class="values-grid">
+          <div class="value-card" onclick="Engine.copy('hex')">
+            <div class="val-label">HEX</div>
+            <div class="val-data" id="out-hex">#89B4FA</div>
+            <i class="ph-bold ph-copy copy-icon"></i>
+          </div>
+          <div class="value-card" onclick="Engine.copy('rgb')">
+            <div class="val-label">RGB</div>
+            <div class="val-data" id="out-rgb">137, 180, 250</div>
+            <i class="ph-bold ph-copy copy-icon"></i>
+          </div>
+          <div class="value-card" onclick="Engine.copy('hsl')">
+            <div class="val-label">HSL</div>
+            <div class="val-data" id="out-hsl">217, 92%, 76%</div>
+            <i class="ph-bold ph-copy copy-icon"></i>
+          </div>
+          <div class="value-card" onclick="Engine.copy('cmyk')">
+            <div class="val-label">CMYK</div>
+            <div class="val-data" id="out-cmyk">45, 28, 0, 2</div>
+            <i class="ph-bold ph-copy copy-icon"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- PALETTES -->
+      <section>
+        <div class="section-header"><i class="ph-duotone ph-palette"></i> Generated Harmonies</div>
+
+        <div style="display:flex; gap:10px; margin-bottom:16px; overflow-x:auto;">
+          <button class="tab-btn active" onclick="Engine.setMode('monochrome', this)">Monochrome</button>
+          <button class="tab-btn" onclick="Engine.setMode('analogous', this)">Analogous</button>
+          <button class="tab-btn" onclick="Engine.setMode('complement', this)">Complementary</button>
+          <button class="tab-btn" onclick="Engine.setMode('triad', this)">Triadic</button>
+        </div>
+
+        <div class="palette-grid" id="paletteGrid">
+          <!-- Generated -->
+        </div>
+      </section>
+
+      <!-- SHADES & TINTS -->
+      <section>
+        <div class="section-header"><i class="ph-duotone ph-faders"></i> Shades & Tints</div>
+        <div class="palette-grid" id="shadesGrid"></div>
+      </section>
+
+      <!-- ACCESSIBILITY -->
+      <section>
+        <div class="section-header"><i class="ph-duotone ph-eye"></i> Accessibility Check</div>
+        <div class="a11y-grid">
+          <!-- Contrast -->
+          <div class="contrast-card">
+            <div style="font-weight:700; margin-bottom:8px">Contrast Ratio (White Text)</div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <div style="font-size:2rem; font-weight:800; font-family:var(--font-mono)" id="contrast-val">4.52</div>
+              <div class="contrast-badge pass" id="contrast-badge">AA Pass</div>
+            </div>
+            <div class="swatch-lg" id="contrast-preview"
+              style="height:80px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.2rem; color:white;">
+              Text Sample
+            </div>
+          </div>
+
+          <!-- Blindness Sim -->
+          <div class="contrast-card">
+            <div style="font-weight:700;">Color Blindness Simulation</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-top:8px;">
+              <div class="sim-box">
+                <div class="sim-swatch" id="sim-proto" style="filter: url(#protanopia)"></div>
+                <span>Protanopia</span>
+              </div>
+              <div class="sim-box">
+                <div class="sim-swatch" id="sim-deut" style="filter: url(#deuteranopia)"></div>
+                <span>Deuteranopia</span>
+              </div>
+              <div class="sim-box">
+                <div class="sim-swatch" id="sim-trit" style="filter: url(#tritanopia)"></div>
+                <span>Tritanopia</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- SVG FILTERS FOR COLOR BLINDNESS -->
+  <svg style="display: none">
+    <defs>
+      <filter id="protanopia">
+        <feColorMatrix type="matrix"
+          values="0.567, 0.433, 0, 0, 0 0.558, 0.442, 0, 0, 0 0, 0.242, 0.758, 0, 0 0, 0, 0, 1, 0" />
+      </filter>
+      <filter id="deuteranopia">
+        <feColorMatrix type="matrix" values="0.625, 0.375, 0, 0, 0 0.7, 0.3, 0, 0, 0 0, 0.3, 0.7, 0, 0 0, 0, 0, 1, 0" />
+      </filter>
+      <filter id="tritanopia">
+        <feColorMatrix type="matrix"
+          values="0.95, 0.05, 0, 0, 0 0, 0.433, 0.567, 0, 0 0, 0.475, 0.525, 0, 0 0, 0, 0, 1, 0" />
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">Copied to clipboard!</div>
+
+  <style>
+    /* Utility Helpers */
+    .tab-btn {
+      background: transparent;
+      border: 1px solid var(--surface1);
+      color: var(--subtext);
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      background: var(--surface0);
+      color: var(--text);
+    }
+
+    .tab-btn.active {
+      background: var(--active);
+      color: var(--base);
+      border-color: var(--active);
+    }
+
+    .sim-box {
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--subtext);
+    }
+
+    .sim-swatch {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      background: var(--active);
+      margin-bottom: 4px;
+    }
+  </style>
+
+  <script>
+    /**
+     * CHROMA FORGE ENGINE
+     * Self-contained Color Math & State Management
+     */
+    const Engine = {
+      state: {
+        h: 220, s: 90, l: 75,
+        mode: 'monochrome'
+      },
+
+      init() {
+        this.cacheDOM();
+        this.bindEvents();
+        this.update();
+      },
+
+      cacheDOM() {
+        this.dom = {
+          picker: document.getElementById('nativePicker'),
+          slH: document.getElementById('slider-h'),
+          slS: document.getElementById('slider-s'),
+          slL: document.getElementById('slider-l'),
+          vlH: document.getElementById('val-h'),
+          vlS: document.getElementById('val-s'),
+          vlL: document.getElementById('val-l'),
+          root: document.documentElement,
+          swatch: document.getElementById('mainSwatch'),
+          hex: document.getElementById('out-hex'),
+          rgb: document.getElementById('out-rgb'),
+          hsl: document.getElementById('out-hsl'),
+          cmyk: document.getElementById('out-cmyk'),
+          palGrid: document.getElementById('paletteGrid'),
+          shadeGrid: document.getElementById('shadesGrid'),
+          contrastVal: document.getElementById('contrast-val'),
+          contrastBadge: document.getElementById('contrast-badge'),
+          contrastPreview: document.getElementById('contrast-preview'),
+          simSwatches: document.querySelectorAll('.sim-swatch'),
+          toast: document.getElementById('toast')
+        };
+      },
+
+      bindEvents() {
+        // Native Picker interaction
+        this.dom.picker.addEventListener('input', (e) => {
+          const [h, s, l] = this.hexToHsl(e.target.value);
+          this.state = {h, s, l, mode: this.state.mode};
+          this.syncSliders();
+          this.update();
+        });
+
+        // Sliders interaction
+        const updateFromSliders = () => {
+          this.state.h = parseInt(this.dom.slH.value);
+          this.state.s = parseInt(this.dom.slS.value);
+          this.state.l = parseInt(this.dom.slL.value);
+          this.update();
+        };
+
+        this.dom.slH.addEventListener('input', updateFromSliders);
+        this.dom.slS.addEventListener('input', updateFromSliders);
+        this.dom.slL.addEventListener('input', updateFromSliders);
+      },
+
+      update() {
+        const {h, s, l} = this.state;
+        const hex = this.hslToHex(h, s, l);
+        const rgb = this.hslToRgb(h, s, l);
+        const cmyk = this.rgbToCmyk(rgb.r, rgb.g, rgb.b);
+
+        // Update CSS Variables
+        this.dom.root.style.setProperty('--active', hex);
+        const [r, g, b] = [rgb.r, rgb.g, rgb.b];
+        this.dom.root.style.setProperty('--active-bg', `rgba(${r}, ${g}, ${b}, 0.1)`);
+
+        // Update Text
+        this.dom.vlH.innerText = h;
+        this.dom.vlS.innerText = s + '%';
+        this.dom.vlL.innerText = l + '%';
+
+        this.dom.hex.innerText = hex.toUpperCase();
+        this.dom.rgb.innerText = `${r}, ${g}, ${b}`;
+        this.dom.hsl.innerText = `${h}, ${s}%, ${l}%`;
+        this.dom.cmyk.innerText = `${cmyk.c}, ${cmyk.m}, ${cmyk.y}, ${cmyk.k}`;
+
+        // Accessibility
+        this.checkContrast(r, g, b);
+        this.dom.simSwatches.forEach(el => el.style.backgroundColor = hex);
+
+        // Palettes
+        this.renderPalette();
+        this.renderShades();
+      },
+
+      syncSliders() {
+        this.dom.slH.value = this.state.h;
+        this.dom.slS.value = this.state.s;
+        this.dom.slL.value = this.state.l;
+      },
+
+      randomize() {
+        this.state.h = Math.floor(Math.random() * 360);
+        this.state.s = Math.floor(Math.random() * 60) + 40; // Avoid dull colors
+        this.state.l = Math.floor(Math.random() * 60) + 20;
+        this.syncSliders();
+        this.update();
+      },
+
+      setMode(mode, btn) {
+        this.state.mode = mode;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.renderPalette();
+      },
+
+      // --- RENDERERS ---
+
+      renderPalette() {
+        const {h, s, l, mode} = this.state;
+        let colors = [];
+
+        switch (mode) {
+          case 'monochrome':
+            colors = [
+              {h, s, l: Math.max(0, l - 40)},
+              {h, s, l: Math.max(0, l - 20)},
+              {h, s, l},
+              {h, s, l: Math.min(100, l + 20)},
+              {h, s, l: Math.min(100, l + 35)}
+            ];
+            break;
+          case 'analogous':
+            colors = [
+              {h: (h - 30 + 360) % 360, s, l},
+              {h: (h - 15 + 360) % 360, s, l},
+              {h, s, l},
+              {h: (h + 15) % 360, s, l},
+              {h: (h + 30) % 360, s, l}
+            ];
+            break;
+          case 'complement':
+            colors = [
+              {h, s, l},
+              {h, s, l: Math.max(0, l - 20)},
+              {h: (h + 180) % 360, s, l},
+              {h: (h + 180) % 360, s, l: Math.min(100, l + 20)},
+              {h: (h + 180) % 360, s, l: Math.max(0, l - 30)}
+            ];
+            break;
+          case 'triad':
+            colors = [
+              {h, s, l},
+              {h: (h + 120) % 360, s, l},
+              {h: (h + 240) % 360, s, l}
+            ];
+            break;
+        }
+
+        this.dom.palGrid.innerHTML = colors.map(c => {
+          const hex = this.hslToHex(c.h, c.s, c.l);
+          // Determine text color for contrast
+          const txt = c.l > 60 ? '#1e1e2e' : '#cdd6f4';
+          return `<div class="color-block" style="background:${hex}; color:${txt}" onclick="Engine.copyText('${hex}')">
+                <span>${hex.toUpperCase()}</span>
+                <span style="opacity:0.6">${c.h}° ${c.s}% ${c.l}%</span>
+            </div>`;
+        }).join('');
+      },
+
+      renderShades() {
+        const {h, s} = this.state;
+        let html = '';
+        for (let i = 10; i <= 90; i += 10) {
+          const hex = this.hslToHex(h, s, i);
+          const txt = i > 60 ? '#1e1e2e' : '#cdd6f4';
+          html += `<div class="color-block" style="background:${hex}; color:${txt}" onclick="Engine.copyText('${hex}')">
+                <span>${i}%</span>
+            </div>`;
+        }
+        this.dom.shadeGrid.innerHTML = html;
+      },
+
+      // --- LOGIC: CONTRAST ---
+      checkContrast(r, g, b) {
+        const lum = (val) => {
+          const v = val / 255;
+          return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+        };
+        const L1 = 0.2126 * lum(r) + 0.7152 * lum(g) + 0.0722 * lum(b);
+        const L2 = 1.0; // White text
+        const ratio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+
+        this.dom.contrastVal.innerText = ratio.toFixed(2);
+        const badge = this.dom.contrastBadge;
+
+        if (ratio >= 7) {
+          badge.innerText = "AAA Pass"; badge.className = "contrast-badge pass";
+        } else if (ratio >= 4.5) {
+          badge.innerText = "AA Pass"; badge.className = "contrast-badge pass";
+        } else if (ratio >= 3) {
+          badge.innerText = "AA Large"; badge.className = "contrast-badge"
+          badge.style.background = "#f9e2af"; // Yellow
+        } else {
+          badge.innerText = "Fail"; badge.className = "contrast-badge fail";
+        }
+
+        this.dom.contrastPreview.style.background = this.hslToHex(this.state.h, this.state.s, this.state.l);
+      },
+
+      // --- MATH UTILS ---
+      hslToHex(h, s, l) {
+        l /= 100;
+        const a = s * Math.min(l, 1 - l) / 100;
+        const f = n => {
+          const k = (n + h / 30) % 12;
+          const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+          return Math.round(255 * color).toString(16).padStart(2, '0');
+        };
+        return `#${f(0)}${f(8)}${f(4)}`;
+      },
+
+      hexToHsl(H) {
+        let r = 0, g = 0, b = 0;
+        if (H.length == 4) {
+          r = "0x" + H[1] + H[1]; g = "0x" + H[2] + H[2]; b = "0x" + H[3] + H[3];
+        } else if (H.length == 7) {
+          r = "0x" + H[1] + H[2]; g = "0x" + H[3] + H[4]; b = "0x" + H[5] + H[6];
+        }
+        r /= 255; g /= 255; b /= 255;
+        let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin;
+        let h = 0, s = 0, l = 0;
+
+        if (delta == 0) h = 0;
+        else if (cmax == r) h = ((g - b) / delta) % 6;
+        else if (cmax == g) h = (b - r) / delta + 2;
+        else h = (r - g) / delta + 4;
+
+        h = Math.round(h * 60);
+        if (h < 0) h += 360;
+        l = (cmax + cmin) / 2;
+        s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+        s = +(s * 100).toFixed(1);
+        l = +(l * 100).toFixed(1);
+        return [Math.round(h), Math.round(s), Math.round(l)];
+      },
+
+      hslToRgb(h, s, l) {
+        s /= 100; l /= 100;
+        const k = n => (n + h / 30) % 12;
+        const a = s * Math.min(l, 1 - l);
+        const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+        return {r: Math.round(255 * f(0)), g: Math.round(255 * f(8)), b: Math.round(255 * f(4))};
+      },
+
+      rgbToCmyk(r, g, b) {
+        let c = 1 - (r / 255);
+        let m = 1 - (g / 255);
+        let y = 1 - (b / 255);
+        let k = Math.min(c, Math.min(m, y));
+
+        c = (c - k) / (1 - k);
+        m = (m - k) / (1 - k);
+        y = (y - k) / (1 - k);
+
+        return {
+          c: Math.round(c * 100) || 0,
+          m: Math.round(m * 100) || 0,
+          y: Math.round(y * 100) || 0,
+          k: Math.round(k * 100) || 0
+        };
+      },
+
+      // --- UI UTILS ---
+      copy(type) {
+        const val = document.getElementById('out-' + type).innerText;
+        this.copyText(val);
+      },
+
+      copyText(text) {
+        navigator.clipboard.writeText(text).then(() => {
+          const t = this.dom.toast;
+          t.classList.add('show');
+          setTimeout(() => t.classList.remove('show'), 2000);
+        });
+      }
+    };
+
+    window.onload = () => Engine.init();
+
+  </script>
+</body>
+
+</html>
