@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ascend // 30 Day Protocol</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    :root {
+      /* DRACULA PALETTE */
+      --bg: #282a36;
+      --current: #44475a;
+      --fg: #f8f8f2;
+      --comment: #6272a4;
+      --cyan: #8be9fd;
+      --green: #50fa7b;
+      --orange: #ffb86c;
+      --pink: #ff79c6;
+      --purple: #bd93f9;
+      --red: #ff5555;
+      --yellow: #f1fa8c;
+
+      --font-display: 'Cinzel', serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --radius: 12px;
+      --ease: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* --- HEADER --- */
+    header {
+      height: 70px;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--current);
+      background: rgba(40, 42, 54, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 20;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      font-family: var(--font-display);
+      font-size: clamp(1.2rem, 4vw, 1.5rem);
+      color: var(--purple);
+      letter-spacing: 1px;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* Icon Button for Settings */
+    .btn-icon {
+      background: transparent;
+      border: 1px solid var(--current);
+      color: var(--comment);
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s var(--ease);
+    }
+
+    .btn-icon:hover {
+      border-color: var(--pink);
+      color: var(--pink);
+      background: rgba(255, 121, 198, 0.1);
+    }
+
+    .btn-icon:active {
+      transform: scale(0.95);
+    }
+
+    /* --- LAYOUT --- */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      height: calc(100vh - 70px);
+      overflow: hidden;
+    }
+
+    /* --- GRID VIEW (LEFT) --- */
+    .grid-view {
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .progress-bar {
+      width: 100%;
+      max-width: 800px;
+      height: 4px;
+      background: var(--current);
+      border-radius: 2px;
+      margin-bottom: 30px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--green);
+      width: 0%;
+      transition: width 1s var(--ease);
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 12px;
+      width: 100%;
+      max-width: 800px;
+      padding-bottom: 40px;
+    }
+
+    .day-card {
+      aspect-ratio: 1;
+      background: var(--current);
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s var(--ease);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .day-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--purple);
+    }
+
+    .day-card.active {
+      border-color: var(--pink);
+      background: rgba(189, 147, 249, 0.1);
+      box-shadow: 0 0 20px rgba(189, 147, 249, 0.2);
+    }
+
+    .day-card.completed {
+      border-color: var(--green);
+    }
+
+    .day-card.completed::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--green);
+    }
+
+    .day-num {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      color: var(--comment);
+      font-weight: 700;
+    }
+
+    .day-card.active .day-num {
+      color: var(--pink);
+    }
+
+    .day-card.completed .day-num {
+      color: var(--green);
+    }
+
+    .day-status {
+      font-size: 0.6rem;
+      color: var(--fg);
+      margin-top: 4px;
+      opacity: 0.5;
+      font-family: var(--font-mono);
+    }
+
+    /* --- DETAIL VIEW (RIGHT) --- */
+    .detail-view {
+      background: rgba(40, 42, 54, 0.5);
+      border-left: 1px solid var(--current);
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      backdrop-filter: blur(5px);
+      overflow-y: auto;
+    }
+
+    .day-header {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      color: var(--pink);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-family: var(--font-mono);
+      color: var(--cyan);
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .habit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .habit-item {
+      background: var(--bg);
+      padding: 16px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      border: 1px solid var(--current);
+    }
+
+    .habit-item:hover {
+      border-color: var(--purple);
+    }
+
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--comment);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+      flex-shrink: 0;
+    }
+
+    .habit-item.done .checkbox {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .habit-item.done span {
+      text-decoration: line-through;
+      color: var(--comment);
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      background: var(--bg);
+      border: 1px solid var(--current);
+      color: var(--fg);
+      padding: 16px;
+      border-radius: 8px;
+      resize: none;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      transition: 0.3s;
+    }
+
+    textarea:focus {
+      border-color: var(--pink);
+      box-shadow: 0 0 10px rgba(255, 121, 198, 0.1);
+    }
+
+    /* --- MODAL --- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(40, 42, 54, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.3s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      background: var(--bg);
+      width: 500px;
+      max-width: 90%;
+      padding: 30px;
+      border-radius: var(--radius);
+      border: 1px solid var(--purple);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      font-family: var(--font-display);
+      color: var(--purple);
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--current);
+      border: none;
+      color: var(--fg);
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 8px;
+      font-family: var(--font-mono);
+    }
+
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .tag {
+      background: var(--current);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tag i {
+      cursor: pointer;
+      color: var(--red);
+    }
+
+    /* Standard Button */
+    .btn {
+      background: transparent;
+      border: 1px solid var(--comment);
+      color: var(--fg);
+      padding: 12px;
+      border-radius: 8px;
+      width: 100%;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .btn:hover {
+      background: var(--current);
+    }
+
+    .btn-primary {
+      background: var(--purple);
+      border-color: var(--purple);
+      color: var(--bg);
+      font-weight: 700;
+    }
+
+    .btn-primary:hover {
+      background: var(--pink);
+      border-color: var(--pink);
+    }
+
+    .btn-danger {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 85, 85, 0.1);
+    }
+
+    .btn-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      color: var(--comment);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+      }
+
+      .grid-view {
+        border-bottom: 1px solid var(--current);
+      }
+
+      .detail-view {
+        border-left: none;
+      }
+
+      /* Mobile tweaks */
+      .calendar {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="brand">Ascend // 30</div>
+    <!-- Single entry point for all non-critical actions -->
+    <button class="btn-icon" onclick="UI.toggleSettings()" aria-label="Settings">
+      <i class="ph-bold ph-gear"></i>
+    </button>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left: Calendar Grid -->
+    <div class="grid-view">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="calendar" id="calendarGrid"></div>
+    </div>
+
+    <!-- Right: Details -->
+    <div class="detail-view">
+      <div>
+        <div class="day-header" id="detailTitle">Day 01</div>
+        <div class="section-title">Daily Protocols</div>
+        <div class="habit-list" id="habitList"></div>
+      </div>
+
+      <div style="flex:1; display: flex; flex-direction: column;">
+        <div class="section-title">Journal / Reflections</div>
+        <textarea id="dayNotes" placeholder="Record your thoughts, victories, and failures here..."
+          oninput="App.saveNote()"></textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Onboarding Modal -->
+  <div class="modal-overlay" id="setupModal">
+    <div class="modal">
+      <div class="modal-header">Initiate Protocol</div>
+      <p style="color: var(--comment); margin-bottom: 30px;">Define your 30-day transformation. What habits will you
+        build?</p>
+
+      <div class="input-group">
+        <label style="color: var(--cyan); font-size: 0.8rem; font-weight: 700;">ADD HABIT</label>
+        <input type="text" id="habitInput" placeholder="e.g., Read 10 Pages"
+          onkeydown="if(event.key === 'Enter') App.addHabit()">
+        <div class="tag-container" id="setupTags"></div>
+      </div>
+
+      <button class="btn btn-primary" onclick="App.finishSetup()">BEGIN ASCENT</button>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal" style="position: relative;">
+      <button class="btn-close" onclick="UI.toggleSettings()"><i class="ph-bold ph-x"></i></button>
+      <div class="modal-header">Data Control</div>
+
+      <div style="text-align: left; margin-bottom: 20px;">
+        <div style="font-size:0.8rem; color:var(--comment); margin-bottom:4px;">TRANSFER</div>
+        <button class="btn" onclick="App.exportData()">
+          <i class="ph-bold ph-download-simple"></i> Export JSON
+        </button>
+        <button class="btn" onclick="document.getElementById('importFile').click()">
+          <i class="ph-bold ph-upload-simple"></i> Import JSON
+        </button>
+        <input type="file" id="importFile" style="display:none" onchange="App.importData(this)">
+      </div>
+
+      <div style="text-align: left;">
+        <div style="font-size:0.8rem; color:var(--red); margin-bottom:4px;">DANGER ZONE</div>
+        <button class="btn btn-danger" onclick="App.reset()">
+          <i class="ph-bold ph-warning-octagon"></i> Abort Protocol (Reset)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ASCEND ENGINE
+     */
+    const App = {
+      data: {
+        habits: [],
+        days: {},
+        activeDay: 1,
+        startDate: null
+      },
+
+      init() {
+        const stored = localStorage.getItem('ascend_data');
+        if (stored) {
+          this.data = JSON.parse(stored);
+          this.renderCalendar();
+          this.selectDay(this.data.activeDay || 1);
+        } else {
+          document.getElementById('setupModal').classList.add('open');
+        }
+      },
+
+      save() {
+        localStorage.setItem('ascend_data', JSON.stringify(this.data));
+        this.updateProgress();
+      },
+
+      // --- SETUP ---
+      tempHabits: [],
+      addHabit() {
+        const input = document.getElementById('habitInput');
+        const val = input.value.trim();
+        if (val) {
+          this.tempHabits.push(val);
+          this.renderTags();
+          input.value = '';
+        }
+      },
+      removeHabit(idx) {
+        this.tempHabits.splice(idx, 1);
+        this.renderTags();
+      },
+      renderTags() {
+        const con = document.getElementById('setupTags');
+        con.innerHTML = this.tempHabits.map((h, i) =>
+          `<div class="tag">${h} <i class="ph-bold ph-x" onclick="App.removeHabit(${i})"></i></div>`
+        ).join('');
+      },
+      finishSetup() {
+        if (this.tempHabits.length === 0) return alert("Add at least one habit.");
+        this.data.habits = [...this.tempHabits];
+        this.data.startDate = Date.now();
+        this.save();
+        document.getElementById('setupModal').classList.remove('open');
+        this.init();
+      },
+
+      // --- CORE LOGIC ---
+      renderCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+
+        let completedDays = 0;
+
+        for (let i = 1; i <= 30; i++) {
+          const dayData = this.data.days[i] || {completed: [], note: ''};
+          const isDone = this.data.habits.length > 0 && dayData.completed.length === this.data.habits.length;
+          if (isDone) completedDays++;
+
+          const card = document.createElement('div');
+          card.className = `day-card ${i === this.data.activeDay ? 'active' : ''} ${isDone ? 'completed' : ''}`;
+          card.onclick = () => this.selectDay(i);
+
+          const pct = Math.round((dayData.completed.length / this.data.habits.length) * 100) || 0;
+
+          card.innerHTML = `
+                <div class="day-num">${i < 10 ? '0' + i : i}</div>
+                <div class="day-status">${pct}%</div>
+            `;
+          grid.appendChild(card);
+        }
+
+        // Progress Bar
+        const totalPct = (completedDays / 30) * 100;
+        document.getElementById('progressFill').style.width = `${totalPct}%`;
+      },
+
+      selectDay(day) {
+        this.data.activeDay = day;
+        this.save();
+
+        // Update visual selection
+        document.querySelectorAll('.day-card').forEach((el, idx) => {
+          if (idx + 1 === day) el.classList.add('active');
+          else el.classList.remove('active');
+        });
+
+        // Render Details
+        document.getElementById('detailTitle').innerText = `Day ${day < 10 ? '0' + day : day}`;
+        document.getElementById('dayNotes').value = (this.data.days[day] && this.data.days[day].note) || '';
+
+        const list = document.getElementById('habitList');
+        list.innerHTML = '';
+
+        const dayData = this.data.days[day] || {completed: []};
+
+        this.data.habits.forEach((habit, idx) => {
+          const isDone = dayData.completed.includes(idx);
+          const item = document.createElement('div');
+          item.className = `habit-item ${isDone ? 'done' : ''}`;
+          item.onclick = () => this.toggleHabit(day, idx);
+          item.innerHTML = `
+                <div class="checkbox"><i class="ph-bold ph-check" style="color:var(--bg); font-size:12px; display:${isDone ? 'block' : 'none'}"></i></div>
+                <span>${habit}</span>
+            `;
+          list.appendChild(item);
+        });
+      },
+
+      toggleHabit(day, habitIdx) {
+        if (!this.data.days[day]) this.data.days[day] = {completed: [], note: ''};
+
+        const arr = this.data.days[day].completed;
+        const index = arr.indexOf(habitIdx);
+
+        if (index > -1) arr.splice(index, 1);
+        else arr.push(habitIdx);
+
+        this.save();
+        this.renderCalendar(); // Update grid status
+        this.selectDay(day); // Re-render list
+      },
+
+      saveNote() {
+        const day = this.data.activeDay;
+        const text = document.getElementById('dayNotes').value;
+        if (!this.data.days[day]) this.data.days[day] = {completed: [], note: ''};
+        this.data.days[day].note = text;
+        this.save();
+      },
+
+      updateProgress() { /* Handled in renderCalendar */},
+
+      // --- DATA MANAGEMENT ---
+      exportData() {
+        const str = JSON.stringify(this.data, null, 2);
+        const blob = new Blob([str], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ascend_protocol_${Date.now()}.json`;
+        a.click();
+        UI.toggleSettings();
+      },
+
+      importData(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const json = JSON.parse(e.target.result);
+            if (json.habits && json.days) {
+              if (confirm("Overwrite current protocol?")) {
+                this.data = json;
+                this.save();
+                this.init();
+                this.selectDay(1);
+                UI.toggleSettings();
+              }
+            } else alert("Invalid file format.");
+          } catch (err) {alert("Error parsing file.");}
+        };
+        reader.readAsText(file);
+        input.value = '';
+      },
+
+      reset() {
+        if (confirm("Abort current protocol and restart? All data will be lost.")) {
+          localStorage.removeItem('ascend_data');
+          location.reload();
+        }
+      }
+    };
+
+    const UI = {
+      toggleSettings() {
+        document.getElementById('settingsModal').classList.toggle('open');
+      }
+    };
+
+    window.onload = () => App.init();
+
+  </script>
+</body>
+
+</html>
