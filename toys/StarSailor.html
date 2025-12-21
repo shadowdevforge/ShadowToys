@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>StarSailor</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      /* CATPPUCCIN MOCHA */
+      --bg: #11111b;
+      /* Crust */
+      --fg: #94e2d5;
+      /* Teal */
+      --text: #cdd6f4;
+      --subtext: #a6adc8;
+      --surface: #313244;
+      --mauve: #cba6f7;
+      --red: #f38ba8;
+      --blue: #89b4fa;
+    }
+
+    * {
+      box-sizing: border-box;
+      touch-action: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'JetBrains Mono', monospace;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* --- UI OVERLAY --- */
+    #ui {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+      text-shadow: 0 0 5px var(--fg), 0 0 10px var(--fg);
+    }
+
+    /* Scanlines */
+    #ui::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(17, 17, 27, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+      background-size: 100% 4px;
+      pointer-events: none;
+    }
+
+    .hud-top,
+    .hud-bottom {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hud-block {
+      padding: 12px;
+      background: rgba(17, 17, 27, 0.5);
+      border: 1px solid var(--surface);
+      backdrop-filter: blur(4px);
+      min-width: 150px;
+    }
+
+    .label {
+      font-size: 0.7rem;
+      color: var(--subtext);
+      letter-spacing: 2px;
+    }
+
+    .value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.2rem;
+      margin-top: 4px;
+    }
+
+    /* Toast for discovered planets */
+    #toast {
+      position: absolute;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface);
+      padding: 16px 24px;
+      border: 1px solid var(--fg);
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s, transform 0.5s;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(20px);
+    }
+
+    /* Mobile Controls */
+    #controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: auto;
+    }
+
+    .ctrl-btn {
+      width: 60px;
+      height: 60px;
+      border: 2px solid var(--fg);
+      border-radius: 50%;
+      opacity: 0.4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+    }
+
+    .ctrl-btn.active {
+      opacity: 1;
+      background: rgba(148, 226, 213, 0.2);
+    }
+
+    .thrust-btn {
+      width: 80px;
+      height: 80px;
+    }
+
+    @media (min-width: 800px) {
+      #controls {
+        display: none;
+      }
+    }
+
+    /* Start Screen */
+    .modal {
+      position: absolute;
+      inset: 0;
+      background: var(--bg);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      pointer-events: auto;
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: var(--fg);
+    }
+
+    p {
+      color: var(--subtext);
+      max-width: 400px;
+      line-height: 1.6;
+    }
+
+    .input-group {
+      margin: 30px 0;
+    }
+
+    input {
+      background: var(--surface);
+      border: 1px solid var(--fg);
+      color: var(--fg);
+      padding: 12px;
+      font-family: 'JetBrains Mono';
+      text-align: center;
+      width: 280px;
+    }
+
+    .start-btn {
+      background: transparent;
+      border: 2px solid var(--fg);
+      color: var(--fg);
+      padding: 16px 40px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="ui">
+    <!-- TOP HUD -->
+    <div class="hud-top">
+      <div class="hud-block">
+        <div class="label">COORDINATES</div>
+        <div class="value" id="pos-val">X:0 Y:0</div>
+      </div>
+      <div class="hud-block" style="text-align:right">
+        <div class="label">VELOCITY</div>
+        <div class="value" id="vel-val">0.00</div>
+      </div>
+    </div>
+
+    <!-- DISCOVERY TOAST -->
+    <div id="toast">
+      <div class="label">NEW SYSTEM DISCOVERED</div>
+      <div class="value" id="planet-name" style="color:var(--mauve)">System Name</div>
+    </div>
+
+    <!-- BOTTOM HUD -->
+    <div class="hud-bottom">
+      <div class="hud-block">
+        <div class="label">SYSTEM</div>
+        <div class="value" id="system-val">Sol</div>
+      </div>
+      <div class="hud-block" style="text-align:right">
+        <div class="label">SEED</div>
+        <div class="value" id="seed-val">...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE CONTROLS -->
+  <div id="controls">
+    <div class="ctrl-btn" id="btn-left">⟲</div>
+    <div class="ctrl-btn thrust-btn" id="btn-thrust">⇡</div>
+    <div class="ctrl-btn" id="btn-right">⟳</div>
+  </div>
+
+  <!-- START SCREEN -->
+  <div id="start-screen" class="modal">
+    <h1>STARSAILOR</h1>
+    <p>Explore an infinite, deterministic universe. Use WASD or touch controls to navigate. There is no goal, only the
+      journey.</p>
+    <div class="input-group">
+      <div class="label">ENTER UNIVERSE SEED (OR LEAVE BLANK)</div>
+      <input type="text" id="seed-input">
+    </div>
+    <button class="start-btn" onclick="Game.start()">ENGAGE</button>
+  </div>
+
+  <script>
+    /**
+     * STARSAILOR ENGINE
+     */
+
+    // --- UTILS ---
+    const Vec2 = {
+      create: (x = 0, y = 0) => ({x, y}),
+      add: (a, b) => ({x: a.x + b.x, y: a.y + b.y}),
+      sub: (a, b) => ({x: a.x - b.x, y: a.y - b.y}),
+      mul: (a, s) => ({x: a.x * s, y: a.y * s}),
+      len: (a) => Math.hypot(a.x, a.y),
+    };
+
+    const RNG = {
+      seed: 0,
+      random() {
+        let x = Math.sin(this.seed++) * 10000;
+        return x - Math.floor(x);
+      },
+      randRange(min, max) {
+        return min + this.random() * (max - min);
+      },
+      setSeed(s) {
+        this.seed = s;
+      }
+    };
+
+    // --- CORE GAME ---
+    const Game = {
+      canvas: document.getElementById('gameCanvas'),
+      ctx: null,
+      width: 0, height: 0,
+      running: false,
+
+      // State
+      keys: new Set(),
+      ship: {
+        pos: Vec2.create(0, 0),
+        vel: Vec2.create(0, 0),
+        angle: 0,
+        thrusting: false,
+      },
+      camera: {
+        pos: Vec2.create(0, 0),
+        zoom: 1
+      },
+
+      // Procedural Generation
+      seed: "",
+      chunkSize: 1024,
+      world: new Map(), // Stores generated chunks
+      discovered: new Set(),
+
+      init() {
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this.bindInput();
+      },
+
+      start() {
+        this.seed = document.getElementById('seed-input').value || Date.now().toString(36);
+        document.getElementById('seed-val').innerText = this.seed.substring(0, 8).toUpperCase();
+        document.getElementById('start-screen').style.display = 'none';
+
+        this.ship.pos = Vec2.create(this.chunkSize / 2, this.chunkSize / 2); // Start near origin
+
+        this.running = true;
+        this.loop();
+      },
+
+      resize() {
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+      },
+
+      bindInput() {
+        // Keyboard
+        document.addEventListener('keydown', e => this.keys.add(e.key.toLowerCase()));
+        document.addEventListener('keyup', e => this.keys.delete(e.key.toLowerCase()));
+
+        // Touch
+        const bindTouch = (el, key) => {
+          el.addEventListener('touchstart', e => {e.preventDefault(); this.keys.add(key); el.classList.add('active');});
+          el.addEventListener('touchend', e => {e.preventDefault(); this.keys.delete(key); el.classList.remove('active');});
+        };
+        bindTouch(document.getElementById('btn-left'), 'a');
+        bindTouch(document.getElementById('btn-right'), 'd');
+        bindTouch(document.getElementById('btn-thrust'), 'w');
+      },
+
+      // --- GAME LOOP ---
+      loop() {
+        if (!this.running) return;
+        this.update();
+        this.draw();
+        requestAnimationFrame(() => this.loop());
+      },
+
+      update() {
+        // --- Ship Physics ---
+        const rotSpeed = 0.05;
+        if (this.keys.has('a')) this.ship.angle -= rotSpeed;
+        if (this.keys.has('d')) this.ship.angle += rotSpeed;
+
+        this.ship.thrusting = this.keys.has('w');
+        if (this.ship.thrusting) {
+          const thrust = Vec2.create(Math.cos(this.ship.angle), Math.sin(this.ship.angle));
+          this.ship.vel = Vec2.add(this.ship.vel, Vec2.mul(thrust, 0.02));
+        }
+
+        // Apply friction/drag
+        this.ship.vel = Vec2.mul(this.ship.vel, 0.995);
+        this.ship.pos = Vec2.add(this.ship.pos, this.ship.vel);
+
+        // Camera follows ship smoothly
+        const followSpeed = 0.05;
+        this.camera.pos.x += (this.ship.pos.x - this.camera.pos.x) * followSpeed;
+        this.camera.pos.y += (this.ship.pos.y - this.camera.pos.y) * followSpeed;
+
+        // --- UI Update ---
+        document.getElementById('pos-val').innerText = `X:${this.ship.pos.x.toFixed(0)} Y:${this.ship.pos.y.toFixed(0)}`;
+        document.getElementById('vel-val').innerText = `${Vec2.len(this.ship.vel).toFixed(2)}`;
+
+        const chunkX = Math.floor(this.ship.pos.x / this.chunkSize);
+        const chunkY = Math.floor(this.ship.pos.y / this.chunkSize);
+        const currentSystem = this.getChunk(`${chunkX},${chunkY}`);
+        document.getElementById('system-val').innerText = currentSystem.name;
+
+        // Discovery check
+        if (currentSystem.planets.length > 0 && !this.discovered.has(currentSystem.name)) {
+          this.discovered.add(currentSystem.name);
+          this.showToast(currentSystem.name);
+        }
+      },
+
+      // --- RENDER ---
+      draw() {
+        const {ctx, width, height, camera} = this;
+        ctx.fillStyle = '#11111b';
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.save();
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(camera.zoom, camera.zoom);
+        ctx.translate(-camera.pos.x, -camera.pos.y);
+
+        // --- World Rendering ---
+        const chunkX = Math.floor(camera.pos.x / this.chunkSize);
+        const chunkY = Math.floor(camera.pos.y / this.chunkSize);
+
+        for (let y = chunkY - 1; y <= chunkY + 1; y++) {
+          for (let x = chunkX - 1; x <= chunkX + 1; x++) {
+            this.drawChunk(this.getChunk(`${x},${y}`));
+          }
+        }
+
+        // --- Ship Rendering ---
+        ctx.save();
+        ctx.translate(this.ship.pos.x, this.ship.pos.y);
+        ctx.rotate(this.ship.angle + Math.PI / 2);
+
+        // Body
+        ctx.strokeStyle = '#94e2d5';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -15);
+        ctx.lineTo(10, 10);
+        ctx.lineTo(-10, 10);
+        ctx.closePath();
+        ctx.stroke();
+
+        // Thrust flame
+        if (this.ship.thrusting) {
+          ctx.fillStyle = '#f38ba8';
+          ctx.beginPath();
+          ctx.moveTo(0, 10);
+          ctx.lineTo(5, 15 + Math.random() * 5);
+          ctx.lineTo(-5, 15 + Math.random() * 5);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        ctx.restore();
+
+        ctx.restore();
+      },
+
+      // --- PROC GEN ---
+      getChunk(key) {
+        if (!this.world.has(key)) {
+          const [x, y] = key.split(',').map(Number);
+
+          // Deterministic generation
+          const chunkSeed = this.strToSeed(this.seed + key);
+          RNG.setSeed(chunkSeed);
+
+          const chunk = {
+            key,
+            x: x * this.chunkSize,
+            y: y * this.chunkSize,
+            stars: [],
+            planets: []
+          };
+
+          // Generate Stars
+          for (let i = 0; i < 50; i++) {
+            chunk.stars.push({
+              x: chunk.x + RNG.random() * this.chunkSize,
+              y: chunk.y + RNG.random() * this.chunkSize,
+              size: RNG.randRange(0.5, 2)
+            });
+          }
+
+          // Chance of a system with planets
+          if (RNG.random() < 0.1) {
+            const systemName = this.generateName();
+            chunk.name = `System ${systemName}`;
+
+            const planetCount = Math.floor(RNG.randRange(1, 5));
+            for (let i = 0; i < planetCount; i++) {
+              chunk.planets.push({
+                name: `${systemName}-${i + 1}`,
+                x: chunk.x + this.chunkSize / 2,
+                y: chunk.y + this.chunkSize / 2,
+                radius: RNG.randRange(10, 50),
+                color: `hsl(${RNG.randRange(0, 360)}, 60%, 50%)`,
+                orbit: RNG.randRange(100, 400),
+                speed: RNG.randRange(0.0005, 0.002)
+              });
+            }
+          } else {
+            chunk.name = "Uncharted Space";
+          }
+
+          this.world.set(key, chunk);
+        }
+        return this.world.get(key);
+      },
+
+      drawChunk(chunk) {
+        // Draw stars
+        this.ctx.fillStyle = '#cdd6f4';
+        chunk.stars.forEach(star => {
+          this.ctx.fillRect(star.x, star.y, star.size, star.size);
+        });
+
+        // Draw planets
+        const now = Date.now();
+        chunk.planets.forEach(p => {
+          const angle = now * p.speed;
+          const px = p.x + Math.cos(angle) * p.orbit;
+          const py = p.y + Math.sin(angle) * p.orbit;
+
+          this.ctx.fillStyle = p.color;
+          this.ctx.beginPath();
+          this.ctx.arc(px, py, p.radius, 0, Math.PI * 2);
+          this.ctx.fill();
+
+          // Draw orbit path
+          this.ctx.strokeStyle = 'rgba(205, 214, 244, 0.1)';
+          this.ctx.lineWidth = 1;
+          this.ctx.beginPath();
+          this.ctx.arc(p.x, p.y, p.orbit, 0, Math.PI * 2);
+          this.ctx.stroke();
+        });
+      },
+
+      generateName() {
+        const pre = ['Alpha', 'Beta', 'Gliese', 'Kepler', 'Zeta'];
+        const post = ['Reticuli', 'Centauri', 'Cygnus', 'Orionis'];
+        return `${pre[Math.floor(RNG.random() * pre.length)]} ${post[Math.floor(RNG.random() * post.length)]}`;
+      },
+
+      strToSeed(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          const char = str.charCodeAt(i);
+          hash = ((hash << 5) - hash) + char;
+          hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+      },
+
+      showToast(name) {
+        const toast = document.getElementById('toast');
+        document.getElementById('planet-name').innerText = name;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 4000);
+      }
+    };
+
+    window.onload = () => Game.init();
+  </script>
+</body>
+
+</html>
