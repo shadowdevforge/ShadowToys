@@ -5,34 +5,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="ShadowToys: A collection of high-fidelity, self-contained HTML experiments.">
-  <title>ShadowToys // Lab</title>
+  <title>ShadowToys // Forge</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
-    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=JetBrains+Mono:wght@500&display=swap"
     rel="stylesheet">
 
   <style>
-    /* --- SYSTEM: CATPPUCCIN MACCHIATO --- */
+    /* --- SYSTEM: CATPPUCCIN MOCHA --- */
     :root {
-      --base: #24273a;
-      --mantle: #1e2030;
-      --crust: #181926;
-      --text: #cad3f5;
-      --subtext: #a5adcb;
-      --overlay: #939ab7;
-      --surface0: #363a4f;
-      --surface1: #494d64;
-      --surface2: #5b6078;
+      --base: #1e1e2e;
+      --mantle: #181825;
+      --crust: #11111b;
+      --text: #cdd6f4;
+      --subtext: #a6adc8;
+      --overlay: #6c7086;
+      --surface0: #313244;
+      --surface1: #45475a;
 
-      --mauve: #c6a0f6;
-      --blue: #8aadf4;
-      --red: #ed8796;
-      --peach: #f5a97f;
-      --green: #a6da95;
-      --teal: #8bd5ca;
-      --yellow: #eed49f;
-      --lavender: #b7bdf8;
+      --mauve: #cba6f7;
+      --blue: #89b4fa;
+      --red: #f38ba8;
+      --peach: #fab387;
+      --green: #a6e3a1;
+      --teal: #94e2d5;
+      --yellow: #f9e2af;
+      --lavender: #b4befe;
+      --pink: #f5c2e7;
 
       --font-sans: 'Plus Jakarta Sans', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
@@ -46,73 +46,76 @@
     }
 
     body {
-      background-color: var(--base);
+      background-color: var(--crust);
       color: var(--text);
       font-family: var(--font-sans);
       min-height: 100vh;
       overflow-x: hidden;
-      /* Cyber Grid Background */
       background-image:
-        radial-gradient(circle at 50% 0%, rgba(138, 173, 244, 0.05) 0%, transparent 50%),
-        linear-gradient(var(--mantle) 1px, transparent 1px),
-        linear-gradient(90deg, var(--mantle) 1px, transparent 1px);
-      background-size: 100% 100%, 40px 40px, 40px 40px;
+        radial-gradient(circle at top left, rgba(180, 190, 254, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at bottom right, rgba(203, 166, 247, 0.05) 0%, transparent 50%);
     }
 
-    /* --- LAYOUT --- */
+    /* --- LAYOUT & HEADER --- */
     .container {
-      max-width: 1300px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 0 24px;
     }
 
     header {
-      padding: 80px 0 60px;
+      padding: 100px 0 80px;
       text-align: center;
-      animation: fadeInDown 0.8s var(--ease);
+      animation: fadeIn 1s var(--ease);
     }
 
     h1 {
-      font-size: clamp(3rem, 8vw, 5rem);
+      font-size: clamp(3.5rem, 8vw, 6rem);
       font-weight: 800;
-      letter-spacing: -3px;
-      background: linear-gradient(135deg, var(--mauve) 0%, var(--blue) 100%);
+      letter-spacing: -4px;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--mauve), var(--blue));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 16px;
     }
 
     .tagline {
       color: var(--subtext);
-      font-size: 1.1rem;
-      max-width: 500px;
-      margin: 0 auto;
+      font-size: 1.125rem;
+      max-width: 550px;
+      margin: 24px auto 0;
       line-height: 1.6;
     }
 
     /* --- CONTROLS --- */
     .toolbar {
-      position: sticky;
-      top: 24px;
-      z-index: 100;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 60px;
+      gap: 24px;
+      margin-bottom: 80px;
+      position: sticky;
+      top: 24px;
+      z-index: 10;
     }
 
     .search-pill {
-      background: rgba(30, 32, 48, 0.7);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--surface1);
+      background: rgba(30, 30, 46, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--surface0);
       border-radius: 100px;
-      padding: 6px 6px 6px 24px;
+      padding: 8px 8px 8px 24px;
       display: flex;
       align-items: center;
       width: 100%;
       max-width: 500px;
-      box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s var(--ease);
+    }
+
+    .search-pill:focus-within {
+      border-color: var(--mauve);
+      box-shadow: 0 0 0 4px rgba(203, 166, 247, 0.1), 0 10px 40px rgba(0, 0, 0, 0.4);
     }
 
     .search-pill input {
@@ -120,10 +123,19 @@
       border: none;
       color: var(--text);
       font-size: 1rem;
-      padding: 10px 0;
+      padding: 12px 0;
       width: 100%;
       outline: none;
-      font-family: var(--font-sans);
+    }
+
+    .search-pill kbd {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      background: var(--surface0);
+      border-radius: 6px;
+      padding: 6px 10px;
+      margin: 0 8px;
+      color: var(--overlay);
     }
 
     .filter-bar {
@@ -133,6 +145,12 @@
       padding: 6px;
       border-radius: 100px;
       border: 1px solid var(--surface0);
+      overflow-x: auto;
+      max-width: 100%;
+    }
+
+    .filter-bar::-webkit-scrollbar {
+      height: 0;
     }
 
     .filter-btn {
@@ -142,42 +160,43 @@
       padding: 8px 20px;
       border-radius: 100px;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.85rem;
       transition: all 0.3s var(--ease);
       display: flex;
       align-items: center;
       gap: 8px;
+      white-space: nowrap;
     }
 
     .filter-btn:hover {
       color: var(--text);
+      background: var(--surface0);
     }
 
     .filter-btn.active {
-      background: var(--surface1);
-      color: var(--mauve);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      background: var(--blue);
+      color: var(--base);
     }
 
     .count-tag {
       font-family: var(--font-mono);
-      font-size: 0.7rem;
-      background: var(--base);
-      padding: 2px 6px;
-      border-radius: 4px;
-      opacity: 0.7;
+      font-size: 0.75rem;
+      color: var(--overlay);
     }
 
-    /* --- GRID --- */
+    .filter-btn.active .count-tag {
+      color: rgba(30, 30, 46, 0.6);
+    }
+
+    /* --- GRID & CARDS --- */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
       gap: 24px;
-      margin-bottom: 100px;
+      margin-bottom: 120px;
     }
 
-    /* --- CARD --- */
     .card {
       background: var(--mantle);
       border: 1px solid var(--surface0);
@@ -193,25 +212,30 @@
     }
 
     .card:hover {
-      transform: translateY(-10px);
+      transform: translateY(-12px) scale(1.02);
       border-color: var(--card-color);
-      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
-      background: #1e2030;
-      /* Lighter mantle */
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
 
-    .card::after {
+    .card::before {
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at top right, var(--card-color), transparent 60%);
+      pointer-events: none;
+      border-radius: inherit;
+      background: radial-gradient(800px circle at var(--x) var(--y), rgba(255, 255, 255, 0.06), transparent 40%);
       opacity: 0;
-      transition: opacity 0.4s var(--ease);
-      z-index: 0;
+      transition: opacity 0.4s;
     }
 
-    .card:hover::after {
-      opacity: 0.08;
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-header,
+    .card-desc,
+    .card-footer {
+      z-index: 1;
     }
 
     .card-header {
@@ -219,34 +243,30 @@
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 16px;
-      z-index: 1;
     }
 
     .card-title {
       font-size: 1.5rem;
       font-weight: 800;
       color: var(--text);
-      letter-spacing: -0.5px;
     }
 
     .card-badge {
       font-family: var(--font-mono);
-      font-size: 0.65rem;
+      font-size: 0.7rem;
       font-weight: 700;
       text-transform: uppercase;
       padding: 4px 10px;
       border-radius: 20px;
       background: var(--surface0);
       color: var(--card-color);
-      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .card-desc {
       color: var(--subtext);
       font-size: 0.95rem;
-      line-height: 1.6;
+      line-height: 1.7;
       flex: 1;
-      z-index: 1;
     }
 
     .card-footer {
@@ -254,7 +274,6 @@
       align-items: center;
       justify-content: space-between;
       margin-top: 24px;
-      z-index: 1;
     }
 
     .card-path {
@@ -272,31 +291,6 @@
       gap: 8px;
     }
 
-    /* --- ANIMATIONS --- */
-    @keyframes fadeInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes cardFade {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
     /* --- FOOTER --- */
     footer {
       background: var(--crust);
@@ -310,34 +304,42 @@
       font-size: 0.7rem;
       color: var(--overlay);
       letter-spacing: 2px;
-      margin-top: 30px;
-      opacity: 0.5;
     }
 
-    .warning-box {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 24px;
-      background: rgba(237, 135, 150, 0.05);
-      border: 1px solid rgba(237, 135, 150, 0.2);
-      color: var(--red);
-      border-radius: 12px;
-      font-size: 0.85rem;
-      font-weight: 600;
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes cardFade {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @media (max-width: 600px) {
+      header {
+        padding: 60px 0;
+      }
+
+      .toolbar {
+        margin-bottom: 40px;
+      }
+
       .grid {
         grid-template-columns: 1fr;
-      }
-
-      header {
-        padding: 40px 0;
-      }
-
-      h1 {
-        font-size: 2.5rem;
+        gap: 16px;
       }
     }
   </style>
@@ -348,76 +350,63 @@
   <div class="container">
     <header>
       <h1>ShadowToys</h1>
-      <p class="tagline">High-fidelity, single-file HTML experiments. No builds. No bloat. Pure engineering.</p>
+      <p class="tagline">A curated collection of high-fidelity, single-file HTML applications forged for curiosity and
+        function.</p>
     </header>
 
     <div class="toolbar">
       <div class="search-pill">
         <input type="text" id="search" placeholder="Locate an artifact..." autocomplete="off">
-        <span style="margin-right: 18px; opacity: 0.4;">⌘K</span>
+        <kbd>⌘K</kbd>
       </div>
 
-      <nav class="filter-bar" id="filters">
-      </nav>
+      <nav class="filter-bar" id="filters"></nav>
     </div>
 
     <main class="grid" id="app-grid"></main>
   </div>
 
   <footer>
-    <div class="warning-box">
-      <span>⚠️</span>
-      <span>Experimental Zone: Features may vanish or transform without notice.</span>
-    </div>
-    <p class="footer-note">FORGED BY SHADOWDEV // 2025</p>
+    <p class="footer-note">Experimental Zone: Features may vanish or transform without notice. Keep Backup</p>
   </footer>
 
   <script>
-    // --- REGISTRY ---
     const apps = [
       {name: "Ascend // 30", desc: "A rigid 30-day self-improvement protocol. Features habit tracking, daily journaling, and data persistence in a luxury interface.", path: "toys/Ascend.html", color: "var(--purple)", category: "Productivity"},
       {name: "Zenith // Flow", desc: "A personal Kanban board with drag-and-drop, tagging, and mobile-optimized horizontal scrolling.", path: "toys/Zenith.html", color: "var(--peach)", category: "Productivity"},
       {name: "ShadeNotes", desc: "A sleek, mobile-first Markdown editor built with Vue.js. All your notes, saved locally.", path: "toys/ShadeNotes.html", color: "var(--blue)", category: "Productivity"},
       {name: "PomoShade", desc: "A configurable, aesthetic Pomodoro timer with persistent settings, audio alerts, and notifications.", path: "toys/PomoShade.html", color: "var(--mauve)", category: "Productivity"},
+      {name: "ChromaForge", desc: "A comprehensive color engineering suite. Features HSL mixing, palette generation, WCAG contrast checking, and blindness simulation.", path: "toys/ChromaForge.html", color: "var(--lavender)", category: "Tool"},
       {name: "Markdown Blacksmith", desc: "A split-pane Markdown editor with Vim keybindings, PDF export, and drag-and-drop support.", path: "toys/MarkdownBlacksmith.html", color: "var(--lavender)", category: "Tool"},
-      {name: "ForgeCalculate", desc: "A precise scientific calculator with complex math functions. Themed in Catppuccin Macchiato.", path: "toys/ForgeCalculate.html", color: "var(--blue)", category: "Tool"},
-      {name: "ForgeCalculus", desc: "An engineering-grade REPL calculator. Features unit suffix parsing (k, M, G), numerical calculus, and history logging.", path: "toys/ForgeCalculus.html", color: "var(--peach)", category: "Tool"},
+      {name: "ForgeCalculus", desc: "An engineering-grade REPL calculator. Features unit suffix parsing, numerical calculus, and history logging.", path: "toys/ForgeCalculus.html", color: "var(--peach)", category: "Tool"},
       {name: "CanvasForge", desc: "A fluid, vector-feel digital sketchbook with undo/redo, high-DPI support, and image export.", path: "toys/CanvasForge.html", color: "var(--pink)", category: "Utility"},
-      {name: "ChromaForge", desc: "A comprehensive color engineering suite. Features HSL mixing, palette generation, WCAG contrast checking, and blindness simulation.", path: "toys/ChromaForge.html", color: "var(--lavender)", category: "Utility"},
-      {name: "GourmetCompass Open", desc: "A free, local-first restaurant finder for India. Uses OpenStreetMap & PIN codes to locate spots.", path: "toys/GourmetCompass.html", color: "var(--teal)", category: "Utility"},
+      {name: "GourmetCompass Open", desc: "A free, local-first restaurant finder. Uses OpenStreetMap & PIN codes to locate spots.", path: "toys/GourmetCompass.html", color: "var(--teal)", category: "Utility"},
+      {name: "TetraFlux", desc: "A high-fidelity block stacking game. Features procedural audio synthesis, particle physics, and mobile-optimized touch controls.", path: "toys/TetraFlux.html", color: "var(--mauve)", category: "Game"},
       {name: "Catppuccin Defense", desc: "A production-grade, infinite-wave Tower Defense engine. Features ECS architecture.", path: "toys/CatppuccinDefense.html", color: "var(--red)", category: "Game"},
       {name: "Eternal Bloom", desc: "A relaxing idle garden simulator. Grow lilies, control the weather, and unlock secrets.", path: "toys/EternalBloom.html", color: "var(--pink)", category: "Game"},
-      {name: "SerpentSaga", desc: "A feature-rich Snake game with touch controls, power-ups, campaign modes, and skins.", path: "toys/SerpentSaga.html", color: "var(--green)", category: "Game"},
-      {name: "TetraFlux", desc: "A high-fidelity block stacking game. Features procedural audio synthesis, particle physics, and mobile-optimized touch controls.", path: "toys/TetraFlux.html", color: "var(--mauve)", category: "Game"},
+      {name: "SerpentSaga", desc: "A feature-rich Snake game with touch controls, power-ups, campaign modes, and skins.", path: "toys/SerpentSaga.html", color: "var(--green)", category: "Game"}
     ];
 
-    // --- ENGINE ---
     const grid = document.getElementById('app-grid');
     const searchInput = document.getElementById('search');
     const filterContainer = document.getElementById('filters');
     let activeFilter = 'all';
+    let searchTimeout;
 
-    // 1. Initialize UI (Generate Buttons)
     function initFilters() {
-      // Extract unique categories using a Set
-      const categories = new Set(apps.map(app => app.category));
-      // Convert to array, sort, and prepend 'all'
-      const sortedCats = ['all', ...Array.from(categories).sort()];
+      const categories = ['all', ...new Set(apps.map(app => app.category).sort())];
 
       filterContainer.innerHTML = '';
-
-      sortedCats.forEach(cat => {
+      categories.forEach(cat => {
         const btn = document.createElement('button');
         btn.className = `filter-btn ${cat === 'all' ? 'active' : ''}`;
         btn.dataset.filter = cat;
 
-        // Capitalize for display
         const label = cat.charAt(0).toUpperCase() + cat.slice(1);
-
         btn.innerHTML = `${label} <span class="count-tag" id="count-${cat}">0</span>`;
 
         btn.addEventListener('click', () => {
-          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          filterContainer.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           activeFilter = cat;
           render();
@@ -427,85 +416,85 @@
       });
     }
 
-    // 2. Dynamic Counting
-    function updateCounts(currentQuery = "") {
-      // Initialize counts with 0
+    function updateCounts(query = "") {
       const counts = {all: 0};
-      const uniqueCats = new Set(apps.map(a => a.category));
-      uniqueCats.forEach(c => counts[c] = 0);
+      new Set(apps.map(a => a.category)).forEach(c => counts[c] = 0);
 
-      // Count matches based on current search
       apps.forEach(app => {
-        const matchesSearch = app.name.toLowerCase().includes(currentQuery) || app.desc.toLowerCase().includes(currentQuery);
-
+        const matchesSearch = app.name.toLowerCase().includes(query) || app.desc.toLowerCase().includes(query);
         if (matchesSearch) {
           counts.all++;
           counts[app.category]++;
         }
       });
 
-      // Update DOM
       for (const [key, value] of Object.entries(counts)) {
         const el = document.getElementById(`count-${key}`);
-        if (el) {
-          el.innerText = value;
-          // Visual polish: fade out zero-count badges if you want, currently keeping them visible
-          el.style.opacity = value === 0 ? '0.3' : '0.7';
-        }
+        if (el) el.innerText = value;
       }
     }
 
-    // 3. Render Grid
     function render() {
       grid.innerHTML = '';
       const query = searchInput.value.toLowerCase();
 
-      // Filter Logic
       const filtered = apps.filter(app => {
         const matchesSearch = app.name.toLowerCase().includes(query) || app.desc.toLowerCase().includes(query);
         const matchesFilter = activeFilter === 'all' || app.category === activeFilter;
         return matchesSearch && matchesFilter;
       });
 
-      // Update the badge numbers based on the search context
       updateCounts(query);
 
       if (filtered.length === 0) {
-        grid.innerHTML = `<div class="empty" style="grid-column: 1/-1; text-align:center; padding: 40px; color: var(--overlay);">No artifacts found matching query.</div>`;
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 40px; color: var(--overlay);">No artifacts found.</div>`;
         return;
       }
 
-      // Render Cards
       filtered.forEach((app, index) => {
         const card = document.createElement('a');
         card.className = 'card';
         card.href = app.path;
         card.target = "_blank";
-        card.style.setProperty('--card-color', app.color);
-        // Staggered animation
-        card.style.animation = `cardFade 0.6s var(--ease) ${index * 0.05}s both`;
+        card.style.setProperty('--card-color', `var(--${app.color.match(/--(\w+)/)[1]})`);
+        card.style.animation = `cardFade 0.5s var(--ease) ${index * 0.05}s both`;
 
         card.innerHTML = `
-          <div class="card-header">
-            <h2 class="card-title">${app.name}</h2>
-            <span class="card-badge">${app.category}</span>
-          </div>
-          <p class="card-desc">${app.desc}</p>
-          <div class="card-footer">
-            <span class="card-path">./${app.path.split('/').pop()}</span>
-            <div class="card-btn">
-              Explore <span>→</span>
-            </div>
-          </div>
-        `;
+                    <div class="card-header">
+                        <h2 class="card-title">${app.name}</h2>
+                        <span class="card-badge">${app.category}</span>
+                    </div>
+                    <p class="card-desc">${app.desc}</p>
+                    <div class="card-footer">
+                        <span class="card-path">./${app.path.split('/').pop()}</span>
+                        <div class="card-btn">Explore <span>→</span></div>
+                    </div>
+                `;
         grid.appendChild(card);
+      });
+
+      // Re-apply spotlight effect to new cards
+      applySpotlightEffect();
+    }
+
+    function applySpotlightEffect() {
+      const cards = document.querySelectorAll('.card');
+      cards.forEach(card => {
+        card.onmousemove = e => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          card.style.setProperty('--x', `${x}px`);
+          card.style.setProperty('--y', `${y}px`);
+        };
       });
     }
 
-    // --- EVENTS ---
-    searchInput.addEventListener('input', render);
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(render, 150);
+    });
 
-    // Global Keybinds
     window.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
@@ -513,11 +502,9 @@
       }
     });
 
-    // Start
     initFilters();
     render();
   </script>
-
 </body>
 
 </html>
